@@ -1,0 +1,33 @@
+name: QShield CI/CD
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-test-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+
+    - name: Run tests
+      run: |
+        pytest tests/
+
+    - name: Build Docker images
+      run: |
+        docker build -t qshield-backend -f backend/Dockerfile .
+        docker build -t qshield-frontend -f frontend/Dockerfile .
+
+    # Optional: push to Docker Hub or Azure
