@@ -80,14 +80,24 @@ class AssetDiscovery:
                for name in raw_name.split('\n'):
                    name = name.strip().lower()
                    if name.startswith('*.'): name = name[2:]
-                   if name and name not in seen_names and name.endswith(self.root_domain):
-                       seen_names.add(name)
-                       self._add_asset({
-                           'hostname': name, 'record_type': 'CT-LOG', 'value': name,
-                           'source': 'crt.sh', 'ssl_cn': entry.get('common_name', ''),
-                           'ssl_issuer': entry.get('issuer_name', ''),
-                           'ssl_valid_from': entry.get('not_before', ''), 'asset_type': 'Domain'
-                       })
+                   if name and name.endswith(self.root_domain) and name not in seen_names:
+                        seen_names.add(name)
+
+                        if '@' in name:
+                            asset_type = 'Email'
+                        else:
+                            asset_type = 'Domain'
+
+                        self._add_asset({
+                            'hostname': name,
+                            'record_type': 'CT-LOG',
+                            'value': name,
+                            'source': 'crt.sh',
+                            'ssl_cn': entry.get('common_name', ''),
+                            'ssl_issuer': entry.get('issuer_name', ''),
+                            'ssl_valid_from': entry.get('not_before', ''),
+                            'asset_type': asset_type
+                        })
        except Exception as e:
            logger.warning(f'crt.sh lookup failed: {e}')
  
