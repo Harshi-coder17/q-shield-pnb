@@ -161,9 +161,44 @@ class AssetDiscovery:
                'ssl_certs': ssl_certs, 'all_assets': self.discovered_assets}
  
 if __name__ == '__main__':
-   import json
-   disco  = AssetDiscovery('pnb.co.in')
-   result = disco.discover_all()
-   print(f"Discovered {result['total_discovered']} assets")
-   for a in result['domains'][:10]:
-       print(f"  Domain: {a['hostname']} → {a.get('ipv4', 'no IP')}")
+    import json
+
+    disco  = AssetDiscovery('pnb.co.in')
+    result = disco.discover_all()
+
+    print(f"Discovered {result['total_discovered']} assets")
+
+    shown = 0
+
+    # 1️⃣ Show DNS first
+    for a in result['domains']:
+        if shown >= 10:
+            break
+
+        ip = a.get('ipv4')
+
+        if a.get('source') == 'DNS' and ip:
+            print(f"  Domain: {a['hostname']} → {ip} [DNS]")
+            shown += 1
+
+
+    # 2️⃣ Then subdomain probe
+    for a in result['domains']:
+        if shown >= 10:
+            break
+
+        ip = a.get('ipv4')
+
+        if a.get('source') == 'subdomain-probe' and ip:
+            print(f"  Domain: {a['hostname']} → {ip} [Probe]")
+            shown += 1
+
+
+    # 3️⃣ Then CT logs
+    for a in result['domains']:
+        if shown >= 10:
+            break
+
+        if a.get('source') == 'crt.sh':
+            print(f"  Domain: {a['hostname']} → [CT Log]")
+            shown += 1
