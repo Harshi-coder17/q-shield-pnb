@@ -1,103 +1,159 @@
 # backend/scanner/asset_discovery.py
 # Q-Shield — Asset Discovery Engine
-
+# Owner: Member 1 (Team Lead / TLS Scanner Engineer)
+# SRS References: FR-15 (Asset Discovery), FR-16 (Asset Inventory)
+ 
 import dns.resolver
 import socket
 import requests
 import logging
 from typing import List, Dict
-
+from concurrent.futures import ThreadPoolExecutor, as_completed
+ 
 logger = logging.getLogger(__name__)
-
-
+ 
+BANKING_SUBDOMAINS = [
+   'www', 'api', 'vpn', 'mail', 'portal', 'app', 'admin',
+   'secure', 'gateway', 'login', 'netbanking', 'mobilebanking',
+   'ib', 'retail', 'corporate', 'sme', 'ibank', 'onlinebanking',
+   'atm', 'imps', 'neft', 'rtgs', 'upi', 'cards', 'loans',
+   'smtp', 'webmail', 'owa', 'remote', 'extranet', 'partner',
+   'download', 'upload', 'ftp', 'sftp', 'monitor', 'nagios',
+   'proxy', 'postman', 'cos', 'recruit', 'hr', 'intranet'
+]
+ 
+DNS_RECORD_TYPES = ['A', 'AAAA', 'MX', 'NS', 'CNAME', 'TXT']
 class AssetDiscovery:
-    """
-    Discovers public-facing assets for a domain
-    """
-
-    def __init__(self, domain: str):
-        self.domain = domain.strip().lower()
-
-    #  Step 1: DNS Resolution
-    def resolve_dns(self) -> Dict:
-        records = {}
-
-        try:
-            for rtype in ["A", "AAAA", "MX", "NS"]:
-                try:
-                    answers = dns.resolver.resolve(self.domain, rtype)
-                    records[rtype] = [str(r) for r in answers]
-                except Exception:
-                    records[rtype] = []
-        except Exception as e:
-            logger.error(f"DNS resolution error: {e}")
-
-        return records
-
-    #  Step 2: Subdomain brute force (basic)
-    def brute_subdomains(self) -> List[str]:
-        common_subs = [
-            "www", "mail", "api", "dev", "test", "staging",
-            "admin", "portal", "vpn", "secure"
-        ]
-
-        found = []
-
-        for sub in common_subs:
-            full = f"{sub}.{self.domain}"
-            try:
-                socket.gethostbyname(full)
-                found.append(full)
-            except:
-                continue
-
-        return found
-
-    # Step 3: Certificate Transparency logs (crt.sh)
-    def fetch_ct_logs(self) -> List[str]:
-        url = f"https://crt.sh/?q=%25.{self.domain}&output=json"
-
-        found = set()
-
-        try:
-            response = requests.get(url, timeout=10)
-
-            if response.status_code == 200:
-                data = response.json()
-
-                for entry in data:
-                    name = entry.get("name_value", "")
-                    for domain in name.split("\n"):
-                        if self.domain in domain:
-                            found.add(domain.strip())
-
-        except Exception as e:
-            logger.error(f"CT log error: {e}")
-
-        return list(found)
-
-    #  Main function
-    def discover(self) -> Dict:
-        dns_data = self.resolve_dns()
-        brute = self.brute_subdomains()
-        ct_logs = self.fetch_ct_logs()
-
-        all_assets = list(set(brute + ct_logs))
-
-        return {
-            "domain": self.domain,
-            "dns_records": dns_data,
-            "subdomains_bruteforce": brute,
-            "subdomains_ct_logs": ct_logs,
-            "all_discovered_assets": all_assets,
-        }
-
-
-#  Quick test
-if __name__ == "__main__":
-    import json
-
-    scanner = AssetDiscovery("google.com")
-    result = scanner.discover()
-
-    print(json.dumps(result, indent=2))
+   """
+   Discovers all public-facing assets for a given organization domain.
+   Uses: DNS resolution, certificate transparency logs, common subdomain probing.
+   All operations are passive and read-only.
+   """
+ 
+   def __init__(self, root_domain: str, max_workers: int = 10):
+       self.root_domain       = root_domain.strip().lower()
+       self.max_workers       = max_workers
+       self.discovered_assets = []
+       self.seen_hosts        = set()
+ 
+   def discover_all(self) -> Dict:
+       logger.info(f'Starting asset discovery for: {self.root_domain}')
+       self._discover_dns_records()
+       self._discover_via_cert_transparency()
+       self._probe_common_subdomains()
+       self._enrich_with_ip_data()
+       return self._build_asset_inventory()
+ 
+   def _discover_dns_records(self):
+       resolver = dns.resolver.Resolver()
+       resolver.timeout  = 5
+       resolver.lifetime = 10
+       for rtype in DNS_RECORD_TYPES:
+           try:
+               answers = resolver.resolve(self.root_domain, rtype)
+               for rdata in answers:
+                   value = str(rdata)
+                   asset = {
+                       'hostname': self.root_domain, 'record_type': rtype,
+                       'value': value, 'source': 'DNS',
+                       'asset_type': self._classify_by_record(rtype, value)
+                   }
+                   if rtype == 'A':    asset['ipv4'] = value
+                   elif rtype == 'AAAA': asset['ipv6'] = value
+                   self._add_asset(asset)
+           except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer,
+                   dns.resolver.NoNameservers, dns.exception.Timeout):
+               pass
+           except Exception as e:
+               logger.debug(f'DNS {rtype} lookup failed: {e}')
+ 
+   def _discover_via_cert_transparency(self):
+       """Queries crt.sh — free public certificate transparency log. Passive read-only."""
+       try:
+           url  = f'https://crt.sh/?q=%.{self.root_domain}&output=json'
+           resp = requests.get(url, timeout=15)
+           if resp.status_code != 200: return
+           entries    = resp.json()
+           seen_names = set()
+           for entry in entries[:200]:  # cap at 200 CT log entries
+               raw_name = entry.get('name_value', '')
+               for name in raw_name.split('\n'):
+                   name = name.strip().lower()
+                   if name.startswith('*.'): name = name[2:]
+                   if name and name not in seen_names and name.endswith(self.root_domain):
+                       seen_names.add(name)
+                       self._add_asset({
+                           'hostname': name, 'record_type': 'CT-LOG', 'value': name,
+                           'source': 'crt.sh', 'ssl_cn': entry.get('common_name', ''),
+                           'ssl_issuer': entry.get('issuer_name', ''),
+                           'ssl_valid_from': entry.get('not_before', ''), 'asset_type': 'Domain'
+                       })
+       except Exception as e:
+           logger.warning(f'crt.sh lookup failed: {e}')
+ 
+   def _probe_common_subdomains(self):
+       candidates = [f'{sub}.{self.root_domain}'
+                     for sub in BANKING_SUBDOMAINS
+                     if f'{sub}.{self.root_domain}' not in self.seen_hosts]
+ 
+       def probe(fqdn):
+           try:
+               ip = socket.gethostbyname(fqdn)
+               return {'hostname': fqdn, 'ipv4': ip, 'record_type': 'A',
+                       'source': 'subdomain-probe', 'asset_type': 'Domain'}
+           except socket.gaierror:
+               return None
+ 
+       with ThreadPoolExecutor(max_workers=self.max_workers) as ex:
+           futures = {ex.submit(probe, c): c for c in candidates}
+           for future in as_completed(futures):
+               result = future.result()
+               if result: self._add_asset(result)
+ 
+   def _enrich_with_ip_data(self):
+       for asset in self.discovered_assets:
+           ip = asset.get('ipv4', '')
+           if not ip: continue
+           try:
+               asset['reverse_dns'] = socket.gethostbyaddr(ip)[0]
+           except Exception:
+               asset['reverse_dns'] = ''
+           try:
+               s = socket.create_connection((ip, 443), timeout=3)
+               s.close()
+               asset['port_443_open'] = True
+               asset['asset_type']    = 'Web Server'
+           except Exception:
+               asset['port_443_open'] = False
+ 
+   def _classify_by_record(self, rtype, value) -> str:
+       if rtype in ('A', 'AAAA'): return 'Server'
+       if rtype == 'MX':          return 'Mail Server'
+       if rtype == 'NS':          return 'Nameserver'
+       return 'Other'
+ 
+   def _add_asset(self, asset: dict):
+       key = asset.get('hostname', '') + asset.get('value', '')
+       if key not in self.seen_hosts:
+           self.seen_hosts.add(key)
+           self.discovered_assets.append(asset)
+ 
+   def _build_asset_inventory(self) -> dict:
+       domains    = [a for a in self.discovered_assets
+                     if a.get('source') in ('DNS', 'crt.sh', 'subdomain-probe')
+                     and a.get('record_type') in ('A', 'AAAA', 'CT-LOG')]
+       ips        = [a for a in self.discovered_assets
+                     if a.get('record_type') == 'A' and a.get('ipv4')]
+       ssl_certs  = [a for a in self.discovered_assets if a.get('source') == 'crt.sh']
+       return {'root_domain': self.root_domain,
+               'total_discovered': len(self.discovered_assets),
+               'domains': domains, 'ip_addresses': ips,
+               'ssl_certs': ssl_certs, 'all_assets': self.discovered_assets}
+ 
+if __name__ == '__main__':
+   import json
+   disco  = AssetDiscovery('pnb.co.in')
+   result = disco.discover_all()
+   print(f"Discovered {result['total_discovered']} assets")
+   for a in result['domains'][:10]:
+       print(f"  Domain: {a['hostname']} → {a.get('ipv4', 'no IP')}")

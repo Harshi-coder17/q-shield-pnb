@@ -1,3 +1,4 @@
+
 from datetime import datetime, timezone #normal timezone , date import kiya
 from dateutil.parser import parse as parse_date # kissi bhi format ki date ko wale date ko import karaya
 import logging #advanced version of printing 
@@ -15,6 +16,22 @@ WEAK_CIPHER_KEYWORDS  = ['DES', '3DES', 'RC4', 'NULL', 'EXPORT', 'anon'] #eqasy 
 CBC_CIPHER_KEYWORDS   = ['CBC'] #jodna blocks ko is cbc
 STRONG_AEAD_KEYWORDS  = ['GCM', 'CCM', 'CHACHA20', 'POLY1305'] #authentication bhi daal do 
 
+from datetime import datetime, timezone
+from dateutil.parser import parse as parse_date
+import logging
+
+logger = logging.getLogger(__name__)
+
+QUANTUM_VULNERABLE_ALGORITHMS = [
+    'RSA', 'ECDSA', 'ECDH', 'DH', 'DSA', 'ECC', 'Diffie-Hellman', 'Elliptic Curve'
+]
+PQC_ALGORITHM_MARKERS = [
+    'ML-DSA', 'ML-KEM', 'SLH-DSA', 'FALCON',
+    'Dilithium', 'Kyber', 'SPHINCS', 'FIPS 203', 'FIPS 204', 'FIPS 205'
+]
+WEAK_CIPHER_KEYWORDS  = ['DES', '3DES', 'RC4', 'NULL', 'EXPORT', 'anon']
+CBC_CIPHER_KEYWORDS   = ['CBC']
+STRONG_AEAD_KEYWORDS  = ['GCM', 'CCM', 'CHACHA20', 'POLY1305']
 
 class QuantumScoringEngine:
     def score(self, tls_data: dict, cert_reuse: bool = False) -> dict:
