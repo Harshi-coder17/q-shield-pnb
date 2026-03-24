@@ -170,7 +170,7 @@ if __name__ == '__main__':
 
     shown = 0
 
-    # 1️⃣ Show DNS first
+    # 1️ Show DNS first
     for a in result['domains']:
         if shown >= 10:
             break
@@ -182,7 +182,7 @@ if __name__ == '__main__':
             shown += 1
 
 
-    # 2️⃣ Then subdomain probe
+    # 2️ Then subdomain probe
     for a in result['domains']:
         if shown >= 10:
             break
@@ -194,7 +194,7 @@ if __name__ == '__main__':
             shown += 1
 
 
-    # 3️⃣ Then CT logs
+    # 3️ Then CT logs
     for a in result['domains']:
         if shown >= 10:
             break
