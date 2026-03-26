@@ -12,74 +12,80 @@ PQC_ALGORITHM_MARKERS = [
     'ML-DSA', 'ML-KEM', 'SLH-DSA', 'FALCON',
     'Dilithium', 'Kyber', 'SPHINCS', 'FIPS 203', 'FIPS 204', 'FIPS 205'
 ] # pqc wale algorithms
-WEAK_CIPHER_KEYWORDS  = ['DES', '3DES', 'RC4', 'NULL', 'EXPORT', 'anon'] #eqasy to decode ciphers
+WEAK_CIPHER_KEYWORDS  = ['DES', '3DES', 'RC4', 'NULL', 'EXPORT', 'anon'] #easy to decode ciphers
 CBC_CIPHER_KEYWORDS   = ['CBC'] #jodna blocks ko is cbc
 STRONG_AEAD_KEYWORDS  = ['GCM', 'CCM', 'CHACHA20', 'POLY1305'] #authentication bhi daal do 
 
-from datetime import datetime, timezone
-from dateutil.parser import parse as parse_date
-import logging
-
-logger = logging.getLogger(__name__)
-
-QUANTUM_VULNERABLE_ALGORITHMS = [
-    'RSA', 'ECDSA', 'ECDH', 'DH', 'DSA', 'ECC', 'Diffie-Hellman', 'Elliptic Curve'
-]
-PQC_ALGORITHM_MARKERS = [
-    'ML-DSA', 'ML-KEM', 'SLH-DSA', 'FALCON',
-    'Dilithium', 'Kyber', 'SPHINCS', 'FIPS 203', 'FIPS 204', 'FIPS 205'
-]
-WEAK_CIPHER_KEYWORDS  = ['DES', '3DES', 'RC4', 'NULL', 'EXPORT', 'anon']
-CBC_CIPHER_KEYWORDS   = ['CBC']
-STRONG_AEAD_KEYWORDS  = ['GCM', 'CCM', 'CHACHA20', 'POLY1305']
 
 class QuantumScoringEngine:
     def score(self, tls_data: dict, cert_reuse: bool = False) -> dict:
         dim = {}
  
-        # ── Dimension 1: TLS Version (25 pts) ──
+        # 1: TLS Version (25 pts) ──
         tls_ver = tls_data.get('tls_version', '')
         if   'TLSv1.3' in tls_ver or 'TLS 1.3' in tls_ver: dim['tls_version'] = 25
         elif 'TLSv1.2' in tls_ver or 'TLS 1.2' in tls_ver: dim['tls_version'] = 12
         else:                                                 dim['tls_version'] = 0
  
-        # ── Dimension 2: Cipher Suite (20 pts) ──
+        # 2: Cipher Suite (20 pts) ──
         cipher      = tls_data.get('cipher_suite', '').upper()
-        is_deprecated = any(k in cipher for k in WEAK_CIPHER_KEYWORDS)
-        is_aead     = any(k in cipher for k in STRONG_AEAD_KEYWORDS)
+        is_deprecated = any(k in cipher for k in WEAK_CIPHER_KEYWORDS)  
+        is_aead     = any(k in cipher for k in STRONG_AEAD_KEYWORDS)    
         is_cbc      = any(k in cipher for k in CBC_CIPHER_KEYWORDS)
-        if   is_deprecated: dim['cipher_suite'] = 0
-        elif is_aead:       dim['cipher_suite'] = 20
-        elif is_cbc:        dim['cipher_suite'] = 10
-        else:               dim['cipher_suite'] = 5
+        if   is_deprecated: dim['cipher_suite'] = 0     #completely broken algorithms: (DES, 3DES, RC4, NULL, EXPORT, anon)
+        elif is_aead:       dim['cipher_suite'] = 20    #best-in-class ciphers: (GCM, CCM, CHACHA20, POLY1305)
+        elif is_cbc:        dim['cipher_suite'] = 10    #**acceptable but not ideal**
+        else:               dim['cipher_suite'] = 5     
  
-        # ── Dimension 3: Key Exchange / Forward Secrecy (20 pts) ──
+        # 3: Key Exchange / Forward Secrecy (20 pts) ──
         ke = tls_data.get('key_exchange', '').upper()
-        if   'ECDHE' in ke:                       dim['key_exchange'] = 20
-        elif 'DHE' in ke and 'ECDH' not in ke:    dim['key_exchange'] = 20
-        elif 'ECDH' in ke:                        dim['key_exchange'] = 12
-        elif 'RSA' in ke:                         dim['key_exchange'] = 5
-        else:                                      dim['key_exchange'] = 0
+        if   'ECDHE' in ke:                       dim['key_exchange'] = 20      #**Best** — Elliptic Curve + Ephemeral = forward secrecy + fast
+        elif 'DHE' in ke and 'ECDH' not in ke:    dim['key_exchange'] = 20      #**Best** — Diffie-Hellman Ephemeral = forward secrecy (just slower than ECDHE) |
+        elif 'ECDH' in ke:                        dim['key_exchange'] = 12      #**Okay** — Elliptic Curve but NOT ephemeral = no forward secrecy |
+        elif 'RSA' in ke:                         dim['key_exchange'] = 5       #**Weak** — Static key, no forward secrecy, quantum vulnerable |
+        else:                                      dim['key_exchange'] = 0      #**Unknown** = not trusted |
+        
+        '''
+        ### What is "Ephemeral" and why does it matter?
+            > **Ephemeral** means a **new key is generated for every session**
+
+            ECDHE/DHE  → new key every session  → even if hacked later, past data is safe ✅
+            ECDH/RSA   → same key reused        → if key stolen, ALL past sessions exposed ❌
+
+        ### Why does DHE check for 'ECDH' not in ke?
+            Because ECDHE contains the letters ECDH — without this check, ECDHE would accidentally match the DHE condition first.
+        '''
  
-        # ── Dimension 4: Key Size (10 pts) ──
+        # 4: Key Size (10 pts) ──
         ks = tls_data.get('cert_key_size', 0)
-        if   ks >= 4096: dim['key_size'] = 10
-        elif ks >= 3072: dim['key_size'] = 8
-        elif ks >= 2048: dim['key_size'] = 7
-        elif ks >= 1024: dim['key_size'] = 2
-        else:            dim['key_size'] = 0
+        if   ks >= 4096: dim['key_size'] = 10   # Future-proof, very hard to crack |
+        elif ks >= 3072: dim['key_size'] = 8    # NIST recommended minimum for post-2030 |
+        elif ks >= 2048: dim['key_size'] = 7    # Current standard, acceptable today |
+        elif ks >= 1024: dim['key_size'] = 2    # Too small, crackable with modern hardware |
+        else:            dim['key_size'] = 0    # Completely broken, no security |
+
+        '''
+        ###Why does 2048 only get 7 and not 10?
+            Because while 2048-bit is safe today, it is expected to become vulnerable to quantum computers by 2030-2035
+            — so it's not future-proof enough for full marks.
+        '''
+
  
-        # ── Dimension 5: Certificate Algorithm (15 pts) ──
+        # 5: Certificate Algorithm (15 pts) ──
         sig    = tls_data.get('cert_sig_algorithm', '')
         is_pqc = any(p.upper() in sig.upper() for p in PQC_ALGORITHM_MARKERS)
         is_ecdsa = 'ECDSA' in sig.upper()
         is_rsa   = 'RSA'   in sig.upper() and not is_pqc
-        if   is_pqc:   dim['cert_algorithm'] = 15
-        elif is_ecdsa: dim['cert_algorithm'] = 5
-        elif is_rsa:   dim['cert_algorithm'] = 2.5
-        else:          dim['cert_algorithm'] = 0
+        if   is_pqc:   dim['cert_algorithm'] = 15                               # Future-proof — quantum resistant by design
+        elif is_ecdsa: dim['cert_algorithm'] = 5                                # Modern today but broken by quantum computers
+        elif is_rsa:   dim['cert_algorithm'] = 2.5                              # Old — quantum vulnerable + slower than ECDSA
+        else:          dim['cert_algorithm'] = 0                                # Can't be trusted
+        '''
+        ### Why does is_rsa check and not is_pqc?
+            Because some PQC algorithm names might contain RSA in their description — this prevents accidentally misclassifying a PQC algorithm as RSA:
+        '''
  
-        # ── Dimension 6: Certificate Validity (5 pts) ──
+        # 6: Certificate Validity (5 pts) ──
         days_remaining = tls_data.get('cert_days_remaining')
         not_after_str  = tls_data.get('cert_not_after', '')
         if days_remaining is None and not_after_str:
@@ -94,8 +100,14 @@ class QuantumScoringEngine:
         elif days_remaining > 30:    dim['cert_validity'] = 3
         elif days_remaining > 0:     dim['cert_validity'] = 2.5
         else:                        dim['cert_validity'] = 0
+
+        '''
+        ### Why validity is only worth 5 pts?
+            Because an expired certificate is serious but fixable quickly — it doesn't mean your encryption algorithms are weak.
+            Whereas a broken cipher or small key size is a deeper, harder problem. So validity carries less weight in the overall score.
+        '''
  
-        # ── Dimension 7: Certificate Reuse Risk (5 pts) ──
+        # 7: Certificate Reuse Risk (5 pts) ──
         dim['cert_reuse'] = 0 if cert_reuse else 5
  
         # ── Total Score — use round() to handle float arithmetic on 2.5 values ──
@@ -119,7 +131,7 @@ class QuantumScoringEngine:
         elif score >= 30: return {'text': 'Quantum Vulnerable',  'color': '#E74C3C', 'icon': 'RED',    'tier': 'Legacy'}
         else:             return {'text': 'Critical',            'color': '#1C2833', 'icon': 'BLACK',  'tier': 'Critical'}
  
-    def _detect_vulnerabilities(self, data, sig, ks, tls_ver, cipher) -> list:
+    def _detect_vulnerabilities(self, data, sig, ks, tls_ver, cipher) -> list: #sig defined at line 73, ks defined at 65,..
         """FR-05: Flag quantum-vulnerable algorithms."""
         vulns = []
         for alg in QUANTUM_VULNERABLE_ALGORITHMS:
@@ -171,18 +183,36 @@ class QuantumScoringEngine:
             recs.append('SECURITY RISK: Same certificate is used on multiple services. Issue unique certificates per service to limit blast radius.')
         return recs
  
+
+
+#Testing
 if __name__ == '__main__':
-    engine = QuantumScoringEngine()
+    engine = QuantumScoringEngine() #created an instance of quantum storing engine claa as engine, this object engine can call all variables, methods that belong to class
+
+
+
     # Test 1: Modern config
-    test_modern = {'tls_version': 'TLSv1.3', 'cipher_suite': 'TLS_AES_256_GCM_SHA384',
+    test_1 = {'tls_version': 'TLSv1.3', 'cipher_suite': 'TLS_AES_256_GCM_SHA384',   #created dictionary which will be sent as a parameter
                    'key_exchange': 'ECDHE', 'forward_secrecy': True, 'cert_key_size': 4096,
                    'cert_sig_algorithm': 'ECDSA-SHA384', 'cert_days_remaining': 365}
-    r1 = engine.score(test_modern, cert_reuse=False)
-    print(f'Modern config: score={r1["score"]} label={r1["label"]["text"]}')
+    r1 = engine.score(test_1, cert_reuse=False)
+    print(f'Test 1 Results: score={r1["score"]} label={r1["label"]["text"]}')
+    print(f'Vulnerabilities: {len(r1["vulnerabilities"])} found')
+    print("Details:", r1["vulnerabilities"])
+    print("\n--- Test 1 Recommendations ---")
+    for i, rec in enumerate(r1["recommendations"], 1):
+        print(f"{i}. {rec}")
+
+
+
     # Test 2: Weak config
-    test_weak = {'tls_version': 'TLSv1.0', 'cipher_suite': 'TLS_RSA_WITH_DES_CBC_SHA',
+    test_2 = {'tls_version': 'TLSv1.0', 'cipher_suite': 'TLS_RSA_WITH_DES_CBC_SHA',
                  'key_exchange': 'RSA', 'forward_secrecy': False, 'cert_key_size': 1024,
                  'cert_sig_algorithm': 'RSA-SHA1', 'cert_days_remaining': -10}
-    r2 = engine.score(test_weak, cert_reuse=True)
-    print(f'Weak config: score={r2["score"]} label={r2["label"]["text"]}')
+    r2 = engine.score(test_2, cert_reuse=True)
+    print(f'Test 2 Results: score={r2["score"]} label={r2["label"]["text"]}')
     print(f'Vulnerabilities: {len(r2["vulnerabilities"])} found')
+    print("Details:", r2["vulnerabilities"])
+    print("\n--- Test 2 Recommendations ---")
+    for i, rec in enumerate(r2["recommendations"], 1):
+        print(f"{i}. {rec}")
