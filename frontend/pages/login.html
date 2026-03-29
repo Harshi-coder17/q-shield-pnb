@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+  <meta charset='UTF-8'>
+  <title>Q-Shield | Login</title>
+  <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css'>
+  <link rel='stylesheet' href='../static/css/qshield.css'>
+  <script src='../static/js/qshield.js'></script>
+  <style>
+    body { background: linear-gradient(135deg, #1B2A4A 0%, #8B1A1A 100%);
+           min-height:100vh; font-family:Arial,sans-serif; }
+    .login-card { background:rgba(255,255,255,0.95); border-radius:16px;
+                  padding:40px; box-shadow:0 20px 60px rgba(0,0,0,0.4); }
+    .btn-login { background:#D4AC0D; border:none; color:#1B2A4A;
+                 font-weight:700; padding:12px; font-size:16px; }
+  </style>
+</head>
+<body class='d-flex align-items-center justify-content-center'>
+  <div class='col-md-5'>
+    <div class='text-center mb-4'>
+      <h1 class='text-white fw-bold'>Q-SHIELD</h1>
+      <p class='text-white-50'>PNB Cybersecurity Hackathon 2026</p>
+    </div>
+    <div class='login-card'>
+      <h4 class='mb-4 fw-bold' style='color:#1B2A4A'>Sign In</h4>
+      <div id='error-msg' class='alert alert-danger d-none'></div>
+      <!-- No HTML form POST here. Login is done by fetch() to /api/login/ -->
+      <div class='mb-3'>
+        <label class='form-label fw-semibold'>Username</label>
+        <input type='text' id='username' class='form-control form-control-lg' required>
+      </div>
+      <div class='mb-4'>
+        <label class='form-label fw-semibold'>Password</label>
+        <input type='password' id='password' class='form-control form-control-lg' required>
+      </div>
+      <button class='btn btn-login btn-lg w-100' onclick='doLogin()'>Sign In</button>
+    </div>
+  </div>
+  <script>
+    async function doLogin() {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      const errDiv   = document.getElementById('error-msg');
+      errDiv.classList.add('d-none');
+      // Step 1: Get CSRF cookie from Django
+      await fetch(qshield.API_BASE + '/api/csrf/', { credentials: 'include' });
+      // Step 2: POST credentials as JSON
+      const resp = await fetch(qshield.API_BASE + '/api/login/', {
+        method: 'POST', credentials: 'include',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': qshield.getCsrf() },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await resp.json();
+      if (resp.ok && data.success) {
+        sessionStorage.setItem('qshield_role', data.role);
+        sessionStorage.setItem('qshield_user', data.username);
+        window.location.href = 'index.html';
+      } else {
+        errDiv.textContent = data.error || 'Login failed';
+        errDiv.classList.remove('d-none');
+      }
+    }
+    document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+  </script>
+</body></html>
