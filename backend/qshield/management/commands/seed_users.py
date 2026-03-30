@@ -16,3 +16,4 @@ class Command(BaseCommand):
                 self.stdout.write(f'Created: {username} ({role})')
             else:
                 self.stdout.write(f'Already exists: {username}')
+ 

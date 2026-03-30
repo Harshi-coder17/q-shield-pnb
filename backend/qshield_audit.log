@@ -1,0 +1,233 @@
+2026-03-30 05:44:17,231 INFO: /Users/harshu/Desktop/q-shield-pnb/backend/qshield/views.py changed, reloading.
+2026-03-30 05:44:18,675 INFO: /Users/harshu/Desktop/q-shield-pnb/backend/qshield/views.py changed, reloading.
+2026-03-30 05:45:53,680 ERROR: Invalid HTTP_HOST header: '0.0.0.0:8000'. You may need to add '0.0.0.0' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '0.0.0.0:8000'. You may need to add '0.0.0.0' to ALLOWED_HOSTS.
+2026-03-30 05:45:53,709 WARNING: Bad Request: /
+2026-03-30 05:45:53,742 ERROR: Invalid HTTP_HOST header: '0.0.0.0:8000'. You may need to add '0.0.0.0' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '0.0.0.0:8000'. You may need to add '0.0.0.0' to ALLOWED_HOSTS.
+2026-03-30 05:45:53,756 WARNING: Bad Request: /favicon.ico
+2026-03-30 05:48:04,917 WARNING: Not Found: /favicon.ico
+2026-03-30 05:49:56,697 WARNING: Forbidden (CSRF cookie not set.): /api/login/
+2026-03-30 05:51:50,351 WARNING: Forbidden (CSRF token from the 'X-Csrftoken' HTTP header has incorrect length.): /api/login/
+2026-03-30 05:52:52,355 INFO: AUDIT | user=anonymous | LOGIN_FAILED | target=admin | 
+2026-03-30 05:52:52,355 WARNING: Unauthorized: /api/login/
+2026-03-30 05:55:07,198 INFO: AUDIT | user=admin | LOGIN | target= | Role: admin
+2026-03-30 05:56:07,787 WARNING: Forbidden (CSRF token from the 'X-Csrftoken' HTTP header incorrect.): /api/scan/
+2026-03-30 05:57:24,753 ERROR: Internal Server Error: /api/scan/
+Traceback (most recent call last):
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/views/decorators/http.py", line 43, in inner
+    return func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/contrib/auth/decorators.py", line 23, in _wrapper_view
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/backend/qshield/auth/rbac.py", line 30, in wrapped
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/backend/qshield/views.py", line 62, in api_scan
+    from utils.validators import validate_target
+ModuleNotFoundError: No module named 'utils'
+2026-03-30 06:04:40,556 INFO: /Users/harshu/Desktop/q-shield-pnb/backend/qshield/views.py changed, reloading.
+2026-03-30 06:06:19,001 INFO: /Users/harshu/Desktop/q-shield-pnb/backend/qshield/views.py changed, reloading.
+2026-03-30 06:09:31,970 ERROR: Internal Server Error: /api/scan/
+Traceback (most recent call last):
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/views/decorators/http.py", line 43, in inner
+    return func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/contrib/auth/decorators.py", line 23, in _wrapper_view
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/backend/qshield/auth/rbac.py", line 30, in wrapped
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/backend/qshield/views.py", line 69, in api_scan
+    tls_data = TLSScanner(hostname).scan()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/backend/scanner/tls_scanner.py", line 88, in scan
+    return self._build_result(
+           ^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/backend/scanner/tls_scanner.py", line 172, in _build_result
+    not_before = cert.not_valid_before_utc
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'cryptography.hazmat.bindings._rust.x509.Certificat' object has no attribute 'not_valid_before_utc'
+2026-03-30 06:15:17,544 INFO: /Users/harshu/Desktop/q-shield-pnb/backend/scanner/tls_scanner.py changed, reloading.
+2026-03-30 06:27:56,634 ERROR: Internal Server Error: /api/scan/
+Traceback (most recent call last):
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/views/decorators/http.py", line 43, in inner
+    return func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/contrib/auth/decorators.py", line 23, in _wrapper_view
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/backend/qshield/auth/rbac.py", line 30, in wrapped
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/backend/qshield/views.py", line 81, in api_scan
+    from reporting.cbom_generator import CBOMGenerator
+ImportError: cannot import name 'CBOMGenerator' from 'reporting.cbom_generator' (/Users/harshu/Desktop/q-shield-pnb/backend/reporting/cbom_generator.py)
+2026-03-30 06:30:48,304 INFO: /Users/harshu/Desktop/q-shield-pnb/backend/reporting/cbom_generator.py changed, reloading.
+2026-03-30 06:31:29,137 INFO: AUDIT | user=admin | SCAN | target=google.com | Score:75.5 Label:PQC Ready
+2026-03-30 06:36:32,656 INFO: /Users/harshu/Desktop/q-shield-pnb/backend/qshield/views.py changed, reloading.
+2026-03-30 06:36:36,156 INFO: /Users/harshu/Desktop/q-shield-pnb/backend/qshield/views.py changed, reloading.
+2026-03-30 06:36:53,236 INFO: /Users/harshu/Desktop/q-shield-pnb/backend/qshield/views.py changed, reloading.
+2026-03-30 06:56:05,247 INFO: /Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/urllib3/fields.py changed, reloading.
+2026-03-30 07:07:48,407 INFO: AUDIT | user=admin | LOGIN | target= | Role: admin
+2026-03-30 07:29:04,695 INFO: AUDIT | user=admin | EXPORT | target= | CSV CBOM
+2026-03-30 07:43:07,496 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 07:43:07,497 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 07:46:00,292 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 07:46:00,292 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 07:46:15,985 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 07:46:20,668 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 07:46:20,678 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 07:46:23,828 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 07:46:29,459 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 07:46:33,170 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 07:46:33,182 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 08:01:29,691 INFO: AUDIT | user=anonymous | LOGIN_FAILED | target=admin | 
+2026-03-30 08:01:29,691 WARNING: Unauthorized: /api/login/
+2026-03-30 08:05:50,684 INFO: AUDIT | user=anonymous | LOGIN_FAILED | target=admin | 
+2026-03-30 08:05:50,685 WARNING: Unauthorized: /api/login/
+2026-03-30 08:06:13,721 INFO: AUDIT | user=GarudaGrid | LOGIN | target= | Role: auditor
+2026-03-30 08:07:05,707 WARNING: Forbidden: /api/scan/
+2026-03-30 08:07:42,993 INFO: AUDIT | user=GarudaGrid | LOGIN_FAILED | target=admin | 
+2026-03-30 08:07:42,993 WARNING: Unauthorized: /api/login/
+2026-03-30 08:09:02,967 INFO: AUDIT | user=GarudaGrid | LOGIN_FAILED | target=checker | 
+2026-03-30 08:09:02,967 WARNING: Unauthorized: /api/login/
+2026-03-30 08:10:18,253 INFO: AUDIT | user=root | LOGIN | target= | Role: auditor
+2026-03-30 08:12:19,483 INFO: /Users/harshu/Desktop/q-shield-pnb/backend/qshield/auth/rbac.py changed, reloading.
+2026-03-30 08:12:24,036 INFO: /Users/harshu/Desktop/q-shield-pnb/backend/qshield/auth/rbac.py changed, reloading.
+2026-03-30 08:12:26,395 INFO: /Users/harshu/Desktop/q-shield-pnb/backend/qshield/auth/rbac.py changed, reloading.
+2026-03-30 08:12:27,743 INFO: /Users/harshu/Desktop/q-shield-pnb/backend/qshield/auth/rbac.py changed, reloading.
+2026-03-30 08:13:01,610 INFO: AUDIT | user=root | LOGIN | target= | Role: admin
+2026-03-30 08:13:10,116 ERROR: Internal Server Error: /api/scan/
+Traceback (most recent call last):
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/views/decorators/http.py", line 43, in inner
+    return func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/contrib/auth/decorators.py", line 23, in _wrapper_view
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/backend/qshield/auth/rbac.py", line 38, in wrapped
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/backend/qshield/views.py", line 62, in api_scan
+    from qshield.utils.validators import validate_target
+ModuleNotFoundError: No module named 'qshield.utils.validators'
+2026-03-30 08:13:47,273 ERROR: Internal Server Error: /api/scan/
+Traceback (most recent call last):
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/views/decorators/http.py", line 43, in inner
+    return func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/contrib/auth/decorators.py", line 23, in _wrapper_view
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/backend/qshield/auth/rbac.py", line 38, in wrapped
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/backend/qshield/views.py", line 62, in api_scan
+    from qshield.utils.validators import validate_target
+ModuleNotFoundError: No module named 'qshield.utils.validators'
+2026-03-30 08:16:37,534 INFO: /Users/harshu/Desktop/q-shield-pnb/backend/qshield/views.py changed, reloading.
+2026-03-30 08:17:05,760 INFO: /Users/harshu/Desktop/q-shield-pnb/backend/qshield/views.py changed, reloading.
+2026-03-30 08:17:16,384 INFO: /Users/harshu/Desktop/q-shield-pnb/backend/qshield/views.py changed, reloading.
+2026-03-30 08:17:30,360 INFO: /Users/harshu/Desktop/q-shield-pnb/backend/qshield/views.py changed, reloading.
+2026-03-30 08:17:55,849 ERROR: Internal Server Error: /api/scan/
+Traceback (most recent call last):
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/views/decorators/http.py", line 43, in inner
+    return func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/contrib/auth/decorators.py", line 23, in _wrapper_view
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/backend/qshield/auth/rbac.py", line 38, in wrapped
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/backend/qshield/views.py", line 62, in api_scan
+    from backend.utils.validators import validate_target
+ModuleNotFoundError: No module named 'backend'
+2026-03-30 08:18:19,608 ERROR: Internal Server Error: /api/scan/
+Traceback (most recent call last):
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/views/decorators/http.py", line 43, in inner
+    return func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/contrib/auth/decorators.py", line 23, in _wrapper_view
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/backend/qshield/auth/rbac.py", line 38, in wrapped
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/backend/qshield/views.py", line 62, in api_scan
+    from backend.utils.validators import validate_target
+ModuleNotFoundError: No module named 'backend'
+2026-03-30 08:53:26,961 INFO: /Users/harshu/Desktop/q-shield-pnb/backend/qshield/views.py changed, reloading.
+2026-03-30 08:53:55,269 INFO: /Users/harshu/Desktop/q-shield-pnb/backend/qshield/views.py changed, reloading.
+2026-03-30 08:55:24,929 INFO: AUDIT | user=root | SCAN | target=google.com | Score:75.5 Label:PQC Ready
+2026-03-30 08:58:13,589 INFO: /Users/harshu/Desktop/q-shield-pnb/backend/scanner/tls_scanner.py changed, reloading.
+2026-03-30 09:00:13,720 INFO: AUDIT | user=root | SCAN | target=google.com | Score:75.5 Label:PQC Ready

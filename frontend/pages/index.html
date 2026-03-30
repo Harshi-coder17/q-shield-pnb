@@ -1,0 +1,135 @@
+<!-- frontend/pages/index.html — Main Dashboard (standalone HTML) -->
+<!DOCTYPE html>
+<html lang='en' id='html-root'>
+<head>
+  <meta charset='UTF-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+  <title>Q-Shield | Asset Inventory Dashboard</title>
+  <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css'>
+  <link rel='stylesheet' href='../static/css/qshield.css'>
+  <script src='https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js'></script>
+  <script src='https://unpkg.com/vis-network@9.1.9/standalone/umd/vis-network.min.js'></script>
+  <script src='../static/js/qshield.js'></script>
+</head>
+<body>
+  <!-- Layout injected by qshield.renderLayout('home') -->
+  <div id='app-layout'></div>
+ 
+  <!-- Page content rendered inside layout by JS -->
+  <div id='page-content' style='display:none'>
+    <div class='row g-3 mb-4'>
+      <div class='col'><div class='stat-card gold'>
+        <div class='stat-label'>Total Assets</div>
+        <div class='stat-number' id='s-total'>--</div>
+      </div></div>
+      <div class='col'><div class='stat-card danger'>
+        <div class='stat-label'>High Risk</div>
+        <div class='stat-number text-danger' id='s-highrisk'>--</div>
+      </div></div>
+      <div class='col'><div class='stat-card warning'>
+        <div class='stat-label'>Expiring Certs</div>
+        <div class='stat-number text-warning' id='s-expiring'>--</div>
+      </div></div>
+      <div class='col'><div class='stat-card success'>
+        <div class='stat-label'>Enterprise Score</div>
+        <div class='stat-number' id='s-score'>--/1000</div>
+      </div></div>
+    </div>
+    <div class='row g-3 mb-4'>
+      <div class='col-md-3'><div class='stat-card'>
+        <div class='fw-bold mb-2 small text-muted text-uppercase'>Asset Risk Distribution</div>
+        <canvas id='riskChart' height='200'></canvas>
+      </div></div>
+      <div class='col-md-3'><div class='stat-card'>
+        <div class='fw-bold mb-2 small text-muted text-uppercase'>Application Status</div>
+        <canvas id='statusPie' height='200'></canvas>
+      </div></div>
+      <div class='col-md-3'><div class='stat-card'>
+        <div class='fw-bold mb-2 small text-muted text-uppercase'>Cert Expiry Timeline</div>
+        <canvas id='certExpiry' height='200'></canvas>
+      </div></div>
+      <div class='col-md-3'><div class='stat-card'>
+        <div class='fw-bold mb-2 small text-muted text-uppercase'>Quick Scan</div>
+        <input type='text' id='scanInput' class='form-control form-control-sm mb-2' placeholder='Enter URL or domain...'>
+        <button class='btn btn-warning btn-sm w-100 fw-bold' onclick='qshield.startScan()'>Scan Now</button>
+        <div id='scan-progress' class='d-none mt-2'>
+          <div class='progress'><div class='progress-bar progress-bar-striped progress-bar-animated bg-warning' style='width:100%'></div></div>
+          <small class='text-muted'>Scanning target...</small>
+        </div>
+        <div id='scan-result' class='mt-2'></div>
+      </div></div>
+    </div>
+    <div class='stat-card'>
+      <div class='d-flex justify-content-between align-items-center mb-3'>
+        <span class='fw-bold'>Asset Inventory</span>
+        <div class='d-flex gap-2'>
+          <input type='text' class='form-control form-control-sm' style='width:200px'
+            placeholder='Search assets...' oninput='qshield.filterTable(this.value)'>
+          <button class='btn btn-sm btn-warning fw-bold' onclick='qshield.scanAll()'>Scan All</button>
+          <a href='#' onclick="window.location.href=qshield.API_BASE+'/api/export/pdf/'" class='btn btn-sm btn-outline-dark'>Export PDF</a>
+        </div>
+      </div>
+      <div class='table-responsive'>
+        <table class='qshield-table'>
+          <thead><tr>
+            <th>Asset Name</th><th>TLS</th><th>Cipher Suite</th>
+            <th>Key Size</th><th>Score</th><th>Label</th>
+            <th>HNDL Risk</th><th>Cert Issuer</th><th>Last Scan</th>
+          </tr></thead>
+          <tbody id='asset-tbody'></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+ 
+  <script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    await qshield.init('home');
+    document.getElementById('page-content').style.display = 'block';
+    loadHome();
+    setInterval(loadHome, 30000);
+  });
+  async function loadHome() {
+    const [summary, results] = await Promise.all([
+      qshield.api('/api/summary/'), qshield.api('/api/results/')
+    ]);
+    document.getElementById('s-total').textContent    = summary.total;
+    document.getElementById('s-score').textContent    = summary.enterprise_score+'/1000';
+    document.getElementById('s-highrisk').textContent = (summary.label_counts?.Critical||0)+(summary.label_counts?.['Quantum Vulnerable']||0);
+    document.getElementById('s-expiring').textContent = summary.expiring_certs||0;
+    const lc = summary.label_counts||{};
+    new Chart(document.getElementById('riskChart'),{
+      type:'bar',
+      data:{labels:['Critical','Vulnerable','PQC Ready','Quantum Safe'],
+            datasets:[{data:[lc.Critical||0,lc['Quantum Vulnerable']||0,lc['PQC Ready']||0,lc['Fully Quantum Safe']||0],
+                       backgroundColor:['#1C2833','#E74C3C','#F39C12','#27AE60']}]},
+      options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}
+    });
+    new Chart(document.getElementById('statusPie'),{
+      type:'pie',
+      data:{labels:['Elite-PQC','Standard','Legacy','Critical'],
+            datasets:[{data:[lc['Fully Quantum Safe']||0,lc['PQC Ready']||0,lc['Quantum Vulnerable']||0,lc.Critical||0],
+                       backgroundColor:['#27AE60','#9B59B6','#F39C12','#E74C3C']}]},
+      options:{plugins:{legend:{position:'bottom',labels:{font:{size:10}}}}}
+    });
+    const tbody = document.getElementById('asset-tbody');
+    tbody.innerHTML = results.map(r => {
+      const labelCls  = qshield.getLabelClass(r.label);
+      const riskCls   = qshield.getRiskClass(r.hndl_risk);
+      const sc        = r.quantum_score||0;
+      const scoreColor = sc>=90?'#27AE60':sc>=60?'#F39C12':sc>=30?'#E74C3C':'#1C2833';
+      return `<tr>
+        <td><strong>${r.hostname}</strong></td>
+        <td>${r.tls_version||'--'}</td>
+        <td style='font-size:11px'>${r.cipher_suite||'--'}</td>
+        <td>${r.cert_key_size||'--'}-bit</td>
+        <td><strong style='color:${scoreColor}'>${sc}/100</strong></td>
+        <td><span class='${labelCls}'>${r.label||'--'}</span></td>
+        <td><span class='${riskCls}'>${r.hndl_risk||'--'}</span></td>
+        <td style='font-size:11px'>${r.cert_issuer||'--'}</td>
+        <td style='font-size:11px'>${r.scanned_at?new Date(r.scanned_at).toLocaleString():'--'}</td>
+      </tr>`;
+    }).join('');
+  }
+  </script>
+</body></html>

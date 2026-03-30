@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Q-Shield Dashboard</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+}
+
+/* HEADER */
+header {
+    background: #020617;
+    padding: 20px;
+    font-size: 22px;
+    font-weight: bold;
+    color: #38bdf8;
+    border-bottom: 1px solid #1e293b;
+}
+
+/* LAYOUT */
+.container {
+    padding: 20px;
+}
+
+/* GRID */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 15px;
+}
+
+/* CARDS */
+.card {
+    background: #020617;
+    padding: 18px;
+    border-radius: 12px;
+    border: 1px solid #1e293b;
+}
+
+.card h3 {
+    font-size: 13px;
+    color: #94a3b8;
+}
+
+.card p {
+    font-size: 26px;
+    margin-top: 8px;
+    font-weight: bold;
+}
+
+/* COLORS */
+.safe { color: #22c55e; }
+.ready { color: #f59e0b; }
+.risk { color: #ef4444; }
+
+/* SECTION */
+.section {
+    margin-top: 30px;
+}
+
+/* BUTTONS */
+button {
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: none;
+    background: #38bdf8;
+    color: black;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #0ea5e9;
+}
+
+/* TABLE */
+table {
+    width: 100%;
+    margin-top: 10px;
+    border-collapse: collapse;
+    background: #020617;
+}
+
+th, td {
+    padding: 12px;
+    border-bottom: 1px solid #1e293b;
+}
+
+th {
+    text-align: left;
+    color: #38bdf8;
+}
+
+/* PROGRESS BAR */
+.progress {
+    background: #1e293b;
+    border-radius: 6px;
+    overflow: hidden;
+    height: 8px;
+}
+
+.progress-bar {
+    height: 100%;
+}
+
+</style>
+</head>
+
+<body>
+
+<header>Q-Shield — Cyber Risk Intelligence Panel</header>
+
+<div class="container">
+
+<!-- TOP METRICS -->
+<div class="grid">
+    <div class="card">
+        <h3>Total Assets</h3>
+        <p id="total">--</p>
+    </div>
+
+    <div class="card">
+        <h3>Enterprise Score</h3>
+        <p id="enterprise">--</p>
+    </div>
+
+    <div class="card">
+        <h3>Security Tier</h3>
+        <p id="tier">--</p>
+    </div>
+
+    <div class="card">
+        <h3>Average Score</h3>
+        <p id="avg">--</p>
+    </div>
+</div>
+
+<!-- RISK DISTRIBUTION -->
+<div class="section grid">
+    <div class="card">
+        <h3>Fully Quantum Safe</h3>
+        <p class="safe" id="safe">0</p>
+    </div>
+
+    <div class="card">
+        <h3>PQC Ready</h3>
+        <p class="ready" id="ready">0</p>
+    </div>
+
+    <div class="card">
+        <h3>Quantum Vulnerable</h3>
+        <p class="risk" id="risk">0</p>
+    </div>
+</div>
+
+<!-- ACTIONS -->
+<div class="section">
+    <h2>Actions</h2>
+    <button onclick="go('results.html')">Results</button>
+    <button onclick="go('cbom.html')">CBOM</button>
+    <button onclick="go('asset_discovery.html')">Graph</button>
+    <button onclick="exportPDF()">PDF</button>
+    <button onclick="exportCSV()">CSV</button>
+</div>
+
+<!-- RESULTS -->
+<div class="section">
+    <h2>Live Scan Results</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Hostname</th>
+                <th>Score</th>
+                <th>Risk</th>
+            </tr>
+        </thead>
+        <tbody id="table"></tbody>
+    </table>
+
+</div>
+
+</div>
+
+<script>
+const API = "http://127.0.0.1:8000";
+
+function go(page) {
+    window.location.href = `/pages/${page}`;
+}
+
+async function loadSummary() {
+    const res = await fetch(`${API}/api/summary/`, { credentials: "include" });
+    const d = await res.json();
+
+    document.getElementById("total").innerText = d.total;
+    document.getElementById("avg").innerText = d.avg_score;
+    document.getElementById("enterprise").innerText = d.enterprise_score;
+    document.getElementById("tier").innerText = d.enterprise_tier;
+
+    const l = d.label_counts || {};
+    document.getElementById("safe").innerText = l["Fully Quantum Safe"] || 0;
+    document.getElementById("ready").innerText = l["PQC Ready"] || 0;
+    document.getElementById("risk").innerText = l["Quantum Vulnerable"] || 0;
+}
+
+async function loadResults() {
+    const res = await fetch(`${API}/api/results/`, { credentials: "include" });
+    const data = await res.json();
+
+    const table = document.getElementById("table");
+
+    data.slice(0, 6).forEach(r => {
+
+        let color = "#ef4444";
+        if (r.quantum_score > 85) color = "#22c55e";
+        else if (r.quantum_score > 60) color = "#f59e0b";
+
+        table.innerHTML += `
+        <tr>
+            <td>${r.hostname}</td>
+            <td>
+                ${r.quantum_score}
+                <div class="progress">
+                    <div class="progress-bar" style="width:${r.quantum_score}%; background:${color}"></div>
+                </div>
+            </td>
+            <td style="color:${color}; font-weight:bold">${r.label}</td>
+        </tr>`;
+    });
+}
+
+function exportPDF() {
+    window.open(`${API}/api/export/pdf/`);
+}
+
+function exportCSV() {
+    window.open(`${API}/api/export/csv/`);
+}
+
+loadSummary();
+loadResults();
+</script>
+
+</body>
+</html>

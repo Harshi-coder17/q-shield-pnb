@@ -1,0 +1,124 @@
+<!-- frontend/pages/pqc_posture.html — Standalone HTML -->
+<!DOCTYPE html>
+<html lang='en' id='html-root'>
+<head>
+  <meta charset='UTF-8'>
+  <title>Q-Shield | PQC Posture</title>
+  <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css'>
+  <link rel='stylesheet' href='../static/css/qshield.css'>
+  <script src='https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js'></script>
+  <script src='../static/js/qshield.js'></script>
+</head>
+<body>
+  <div id='app-layout'></div>
+  <div id='page-content' style='display:none'>
+    <!-- Top summary bar -->
+    <div class='d-flex gap-3 mb-3 small fw-bold'>
+      <span>Elite-PQC Ready: <span id='pct-elite' class='text-success'>--</span>%</span>
+      <span>Standard: <span id='pct-std' class='text-warning'>--</span>%</span>
+      <span>Legacy: <span id='pct-legacy' class='text-danger'>--</span>%</span>
+      <span>Critical Apps: <span id='cnt-critical' class='text-danger'>--</span></span>
+    </div>
+    <div class='row g-3 mb-3'>
+      <!-- Classification grade bar chart -->
+      <div class='col-md-3'><div class='stat-card'>
+        <div class='fw-bold mb-2 small text-muted text-uppercase'>Assets by Classification Grade</div>
+        <canvas id='gradeChart' height='220'></canvas>
+      </div></div>
+      <!-- Application Status pie -->
+      <div class='col-md-3'><div class='stat-card'>
+        <div class='fw-bold mb-2 small text-muted text-uppercase'>Application Status</div>
+        <canvas id='appStatusPie' height='220'></canvas>
+      </div></div>
+      <!-- Risk Overview matrix -->
+      <div class='col-md-3'><div class='stat-card'>
+        <div class='fw-bold mb-2 small text-muted text-uppercase'>Risk Overview</div>
+        <div id='risk-matrix' style='display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;height:180px'></div>
+        <div class='mt-2 small d-flex gap-3'>
+          <span><span style='background:#E74C3C;padding:2px 8px;border-radius:2px;color:#fff'>High</span></span>
+          <span><span style='background:#F39C12;padding:2px 8px;border-radius:2px;color:#fff'>Medium</span></span>
+          <span><span style='background:#27AE60;padding:2px 8px;border-radius:2px;color:#fff'>Safe</span></span>
+        </div>
+      </div></div>
+      <!-- App detail panel -->
+      <div class='col-md-3'><div class='stat-card' id='app-detail'>
+        <div class='fw-bold mb-2'>App Details</div>
+        <div class='small text-muted'>Click an asset to see details</div>
+      </div></div>
+    </div>
+    <!-- Per-asset PQC support table -->
+    <div class='stat-card mb-3'>
+      <div class='fw-bold mb-3'>Assets PQC Support Status</div>
+      <table class='qshield-table'>
+        <thead><tr><th>Asset Name</th><th>Score</th><th>Label</th><th>PQC Support</th><th>TLS</th><th>HNDL Risk</th></tr></thead>
+        <tbody id='posture-tbody'></tbody>
+      </table>
+    </div>
+    <!-- Improvement Recommendations -->
+    <div class='stat-card'>
+      <div class='fw-bold mb-3'>Improvement Recommendations</div>
+      <ul id='recs-list' class='list-group list-group-flush'></ul>
+    </div>
+  </div>
+  <script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    await qshield.init('posture');
+    document.getElementById('page-content').style.display = 'block';
+    loadPosture();
+  });
+  async function loadPosture() {
+    const [summary, results] = await Promise.all([
+      qshield.api('/api/summary/'), qshield.api('/api/results/')
+    ]);
+    const total = summary.total || 1;
+    const lc    = summary.label_counts || {};
+    const elite  = lc['Fully Quantum Safe'] || 0;
+    const std    = lc['PQC Ready'] || 0;
+    const legacy = lc['Quantum Vulnerable'] || 0;
+    const crit   = lc['Critical'] || 0;
+    document.getElementById('pct-elite').textContent    = Math.round(elite/total*100);
+    document.getElementById('pct-std').textContent      = Math.round(std/total*100);
+    document.getElementById('pct-legacy').textContent   = Math.round(legacy/total*100);
+    document.getElementById('cnt-critical').textContent = crit;
+    // Grade chart
+    new Chart(document.getElementById('gradeChart'), {
+      type: 'bar',
+      data: { labels: ['Elite', 'Critical', 'Std', 'Legacy'],
+              datasets: [{ data: [elite, crit, std, legacy],
+                           backgroundColor: ['#27AE60','#E74C3C','#F39C12','#888'] }]},
+      options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+    });
+    // Application Status pie
+    new Chart(document.getElementById('appStatusPie'), {
+      type: 'pie',
+      data: { labels: ['Elite-PQC Ready', 'Standard', 'Legacy', 'Critical'],
+              datasets: [{ data: [elite, std, legacy, crit],
+                           backgroundColor: ['#27AE60','#9B59B6','#F39C12','#E74C3C'] }]},
+      options: { plugins: { legend: { position: 'bottom' } } }
+    });
+    // Asset table
+    const tbody = document.getElementById('posture-tbody');
+    tbody.innerHTML = results.map(r => {
+      const sc = r.quantum_score || 0;
+      const pqcIcon = r.is_pqc_algorithm ? "<span class='badge-quantum-safe'>YES</span>" : "<span class='badge-vulnerable'>NO</span>";
+      const labelCls = qshield.getLabelClass(r.label);
+      const riskCls  = qshield.getRiskClass(r.hndl_risk);
+      return `<tr>
+        <td><strong>${r.hostname}</strong></td>
+        <td><strong style='color:${sc>=60?"#27AE60":"#E74C3C"}'>${sc}/100</strong></td>
+        <td><span class='${labelCls}'>${r.label||'--'}</span></td>
+        <td>${pqcIcon}</td>
+        <td>${r.tls_version||'--'}</td>
+        <td><span class='${riskCls}'>${r.hndl_risk||'--'}</span></td>
+      </tr>`;
+    }).join('');
+    // Recommendations
+    const recsList = document.getElementById('recs-list');
+    const allRecs  = new Set();
+    results.forEach(r => { (r.recommendations||[]).forEach(rec => allRecs.add(rec)); });
+    recsList.innerHTML = [...allRecs].slice(0,8).map(rec =>
+      `<li class='list-group-item small'>${rec}</li>`
+    ).join('');
+  }
+  </script>
+</body></html>

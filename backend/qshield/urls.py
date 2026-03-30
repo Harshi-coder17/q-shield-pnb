@@ -1,7 +1,4 @@
 # backend/qshield/urls.py
-# Q-Shield — API-Only URL Configuration
-# Owner: Member 2 (Django Backend & API Infrastructure Engineer)
- 
 from django.contrib import admin
 from django.urls import path
 from qshield import views

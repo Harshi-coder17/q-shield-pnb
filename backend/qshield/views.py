@@ -1,3 +1,5 @@
+# backend/qshield/views.py
+ 
 import json, sys, os
 from django.http import JsonResponse, HttpResponse
 from django.contrib.auth import authenticate, login, logout
@@ -116,7 +118,7 @@ def api_scan(request):
         'vulnerabilities':  score_result['vulnerabilities'],
         'recommendations':  score_result['recommendations'],
         'is_pqc': score_result.get('is_pqc', False),
-        'hndl': hndl, 'graph': graph.to_json()})
+        'hndl': hndl,'cbom': cbom, 'graph': graph.to_json()})
 @require_http_methods(['POST'])
 @require_permission('scan')
 def api_batch_scan(request):
@@ -164,6 +166,7 @@ def api_summary(request):
     return JsonResponse({'total': total, 'label_counts': label_counts,
                          'avg_score': round(avg,1), 'enterprise_score': es,
                          'enterprise_tier': tier, 'expiring_certs': expiring, 'expired_certs': expired})
+ 
 @require_http_methods(['GET'])
 @require_permission('export')
 def export_json(request):
@@ -196,3 +199,39 @@ def export_pdf(request):
     resp = HttpResponse(pdf_bytes, content_type='application/pdf')
     resp['Content-Disposition'] = 'attachment; filename=qshield_report.pdf'
     return resp
+
+# ── TEMP STUBS (Phase 3+ integration pending) ──
+
+@require_http_methods(['GET'])
+@require_permission('view')
+def api_discover(request):
+    return JsonResponse({'status': 'discover endpoint ready'})
+
+@require_http_methods(['GET'])
+@require_permission('view')
+def api_assets(request):
+    assets = list(Asset.objects.all().values())
+    return JsonResponse(assets, safe=False)
+
+@require_http_methods(['GET'])
+@require_permission('view')
+def api_graph(request):
+    from analysis.dep_graph import DependencyGraphEngine
+    graph = DependencyGraphEngine()
+    for r in ScanResult.objects.all():
+        graph.add_scan_result(r.to_dict())
+    return JsonResponse(graph.to_json())
+
+@require_http_methods(['GET'])
+@require_permission('view')
+def api_audit_log(request):
+    logs = list(AuditLog.objects.all().values())
+    return JsonResponse(logs, safe=False)
+
+@require_http_methods(['GET', 'POST'])
+@require_permission('scan')
+def api_schedules(request):
+    if request.method == 'GET':
+        schedules = list(ScheduledScan.objects.all().values())
+        return JsonResponse(schedules, safe=False)
+    return JsonResponse({'status': 'schedule creation pending'})

@@ -1,0 +1,145 @@
+<!-- frontend/pages/asset_discovery.html — Standalone HTML (no Django templates) -->
+<!DOCTYPE html>
+<html lang='en' id='html-root'>
+<head>
+  <meta charset='UTF-8'><title>Q-Shield | Asset Discovery</title>
+  <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css'>
+  <link rel='stylesheet' href='../static/css/qshield.css'>
+  <script src='https://unpkg.com/vis-network@9.1.9/standalone/umd/vis-network.min.js'></script>
+  <script src='../static/js/qshield.js'></script>
+</head>
+<body>
+  <div id='app-layout'></div>
+  <div id='page-content' style='display:none'>
+    <!-- Discovery Form -->
+    <div class='stat-card mb-4'>
+      <div class='fw-bold mb-2'>Discover Assets for Domain</div>
+      <div class='d-flex gap-2'>
+        <input type='text' id='domain-input' class='form-control' style='max-width:320px'
+          placeholder='e.g. pnb.co.in'>
+        <button class='btn btn-warning fw-bold' onclick='startDiscovery()'>Discover Now</button>
+      </div>
+      <div id='disc-progress' class='d-none mt-2'>
+        <div class='progress'><div class='progress-bar progress-bar-striped progress-bar-animated bg-warning' style='width:100%'></div></div>
+        <small class='text-muted'>Scanning DNS, CT logs, subdomain probing...</small>
+      </div>
+    </div>
+    <!-- Vis.js Graph -->
+    <div class='row g-3 mb-4'>
+      <div class='col-md-8'><div class='stat-card'>
+        <div class='fw-bold mb-2'>Asset Dependency Graph</div>
+        <div id='disc-graph' style='height:420px;background:#1B2A4A;border-radius:8px'></div>
+      </div></div>
+      <div class='col-md-4'><div class='stat-card'>
+        <div class='fw-bold mb-2'>Legend</div>
+        <div class='small d-flex flex-column gap-1'>
+          <span><span style='background:#2471A3;padding:3px 8px;border-radius:3px;color:#fff'>Asset</span> — Scanned hostname</span>
+          <span><span style='background:#27AE60;padding:3px 8px;border-radius:3px;color:#fff'>Certificate</span> — X.509 cert</span>
+          <span><span style='background:#D4AC0D;padding:3px 8px;border-radius:3px;color:#000'>CA</span> — Certificate Authority</span>
+          <span><span style='background:#E74C3C;padding:3px 8px;border-radius:3px;color:#fff'>Algorithm</span> — Crypto algorithm</span>
+          <span><span style='background:#8E44AD;padding:3px 8px;border-radius:3px;color:#fff'>Protocol</span> — TLS version</span>
+        </div>
+        <div id='disc-cert-reuse' class='mt-3'></div>
+      </div></div>
+    </div>
+    <!-- Discovery Results Tabs -->
+    <div class='stat-card'>
+      <ul class='nav nav-tabs mb-3' id='discTabs'>
+        <li class='nav-item'><a class='nav-link active' data-bs-toggle='tab' href='#disc-domains'>Domains</a></li>
+        <li class='nav-item'><a class='nav-link' data-bs-toggle='tab' href='#disc-ssl'>SSL Certs</a></li>
+        <li class='nav-item'><a class='nav-link' data-bs-toggle='tab' href='#disc-ips'>IP Addresses</a></li>
+        <li class='nav-item'><a class='nav-link' data-bs-toggle='tab' href='#disc-software'>Software</a></li>
+      </ul>
+      <div class='tab-content'>
+        <div class='tab-pane fade show active' id='disc-domains'><div id='disc-domains-list'><small class='text-muted'>Run discovery to see results</small></div></div>
+        <div class='tab-pane fade' id='disc-ssl'><div id='disc-ssl-list'><small class='text-muted'>Run discovery to see results</small></div></div>
+        <div class='tab-pane fade' id='disc-ips'><div id='disc-ips-list'><small class='text-muted'>Run discovery to see results</small></div></div>
+        <div class='tab-pane fade' id='disc-software'><div id='disc-sw-list'><small class='text-muted'>Software stack detection coming soon</small></div></div>
+      </div>
+    </div>
+  </div>
+  <script src='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js'></script>
+  <script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    await qshield.init('discovery');
+    document.getElementById('page-content').style.display = 'block';
+    // Load graph from existing scan results on page load
+    const results = await qshield.api('/api/results/');
+    if (results && results.length) {
+      loadGraph(results);
+    }
+  });
+ 
+  async function startDiscovery() {
+    const domain = document.getElementById('domain-input').value.trim();
+    if (!domain) { alert('Please enter a domain.'); return; }
+    document.getElementById('disc-progress').classList.remove('d-none');
+ 
+    // CORRECTED: qshield.api() already returns parsed JSON.
+    // Do NOT call .then(r => r.json()) — that would cause TypeError.
+    const result = await qshield.api('/api/discover/', {
+      method: 'POST',
+      body: JSON.stringify({ domain })
+    });
+ 
+    document.getElementById('disc-progress').classList.add('d-none');
+    if (!result) return;
+    if (result.error) { alert('Discovery error: ' + result.error); return; }
+ 
+    // Render domain list
+    const domDiv = document.getElementById('disc-domains-list');
+    const domains = result.domains || [];
+    domDiv.innerHTML = `<p class='small text-muted mb-2'>Found ${domains.length} domains</p>
+      <table class='qshield-table'><thead><tr><th>Hostname</th><th>IP Address</th><th>Source</th><th>Port 443</th></tr></thead>
+      <tbody>${domains.map(d=>`<tr><td><strong>${d.hostname}</strong></td>
+        <td>${d.ipv4||d.value||'--'}</td><td>${d.source||'--'}</td>
+        <td><span class='${d.port_443_open?"badge-quantum-safe":"badge-critical"}'>${d.port_443_open?'Open':'Unknown'}</span></td></tr>`).join('')
+      }</tbody></table>`;
+ 
+    // Render SSL list
+    const sslDiv = document.getElementById('disc-ssl-list');
+    const certs  = result.ssl_certs || [];
+    sslDiv.innerHTML = `<p class='small text-muted mb-2'>Found ${certs.length} certificates in CT logs</p>
+      <table class='qshield-table'><thead><tr><th>Hostname</th><th>CN</th><th>Issuer</th><th>Valid From</th></tr></thead>
+      <tbody>${certs.slice(0,50).map(c=>`<tr><td>${c.hostname}</td><td>${c.ssl_cn||'--'}</td>
+        <td style='font-size:11px'>${c.ssl_issuer||'--'}</td><td>${c.ssl_valid_from||'--'}</td></tr>`).join('')
+      }</tbody></table>`;
+ 
+    // Render IP list
+    const ipDiv = document.getElementById('disc-ips-list');
+    const ips   = result.ip_addresses || [];
+    ipDiv.innerHTML = `<p class='small text-muted mb-2'>Found ${ips.length} IP addresses</p>
+      <table class='qshield-table'><thead><tr><th>IPv4</th><th>Hostname</th><th>Reverse DNS</th></tr></thead>
+      <tbody>${ips.map(i=>`<tr><td><strong>${i.ipv4}</strong></td><td>${i.hostname}</td><td>${i.reverse_dns||'--'}</td></tr>`).join('')
+      }</tbody></table>`;
+ 
+    loadGraph(result.all_assets || []);
+  }
+ 
+  function loadGraph(data) {
+    const nodes = new vis.DataSet();
+    const edges = new vis.DataSet();
+    const seenNodes = new Set();
+    data.slice(0, 80).forEach((a, idx) => {
+      const id = a.hostname || `node-${idx}`;
+      if (!seenNodes.has(id)) {
+        seenNodes.add(id);
+        nodes.add({ id, label: id.length>22?id.slice(0,20)+'..':id,
+                    color:{ background: a.port_443_open ? '#27AE60' : '#2471A3', border:'#fff' },
+                    font:{ color:'#FFFFFF', size:11 } });
+      }
+      if (a.ssl_issuer) {
+        const caId = 'CA:' + (a.ssl_issuer.slice(0,25));
+        if (!seenNodes.has(caId)) { seenNodes.add(caId); nodes.add({ id:caId, label:caId, color:{background:'#D4AC0D',border:'#fff'}, font:{color:'#000',size:10} }); }
+        edges.add({ from:id, to:caId, label:'issued_by', arrows:'to', color:{color:'#888'} });
+      }
+    });
+    const container = document.getElementById('disc-graph');
+    new vis.Network(container, {nodes,edges}, {
+      layout:{randomSeed:42}, physics:{stabilization:true},
+      interaction:{hover:true,zoomView:true,navigationButtons:true},
+      nodes:{borderWidth:2}, edges:{width:1.5,smooth:{type:'curvedCW'}}
+    });
+  }
+  </script>
+</body></html>

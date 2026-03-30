@@ -1,0 +1,103 @@
+<!-- frontend/pages/cyber_rating.html — Standalone HTML (no Django templates) -->
+<!DOCTYPE html>
+<html lang='en' id='html-root'>
+<head>
+  <meta charset='UTF-8'><title>Q-Shield | Cyber Rating</title>
+  <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css'>
+  <link rel='stylesheet' href='../static/css/qshield.css'>
+  <script src='https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js'></script>
+  <script src='../static/js/qshield.js'></script>
+</head>
+<body>
+  <div id='app-layout'></div>
+  <div id='page-content' style='display:none'>
+    <!-- Enterprise Score Banner -->
+    <div class='row g-3 mb-4'>
+      <div class='col-md-4'><div class='stat-card gold'>
+        <div class='stat-label'>Enterprise Cyber Score</div>
+        <div class='stat-number' id='ent-score'>--/1000</div>
+        <div id='ent-tier' class='mt-1' style='font-size:12px;font-weight:600'></div>
+      </div></div>
+      <div class='col-md-4'><div class='stat-card'>
+        <div class='stat-label'>Average Quantum Score</div>
+        <div class='stat-number' id='avg-score'>--/100</div>
+      </div></div>
+      <div class='col-md-4'><div class='stat-card danger'>
+        <div class='stat-label'>High Risk Assets</div>
+        <div class='stat-number text-danger' id='high-risk'>--</div>
+      </div></div>
+    </div>
+    <!-- Enterprise Tier Explanation -->
+    <div class='stat-card mb-4'>
+      <div class='fw-bold mb-3'>Enterprise Tier Classification (SRS Feature 2)</div>
+      <table class='qshield-table'>
+        <thead><tr><th>Tier</th><th>Score Range</th><th>Description</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Elite-PQC Ready</strong></td><td>&gt; 700 / 1000</td>
+            <td>All critical systems are PQC-ready. NIST FIPS 203/204/205 algorithms deployed.</td>
+            <td id='tier-elite-status'>--</td></tr>
+          <tr>
+            <td><strong>Standard</strong></td><td>400 – 699 / 1000</td>
+            <td>PQC migration partially complete. Some systems still using classical cryptography.</td>
+            <td id='tier-std-status'>--</td></tr>
+          <tr>
+            <td><strong>Legacy</strong></td><td>&lt; 400 / 1000</td>
+            <td>Majority of systems using quantum-vulnerable cryptography. Immediate action required.</td>
+            <td id='tier-legacy-status'>--</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <!-- Score by Asset -->
+    <div class='stat-card mb-4'>
+      <div class='fw-bold mb-3'>Score by Asset</div>
+      <canvas id='scoreChart' height='80'></canvas>
+    </div>
+    <!-- Per-URL Table -->
+    <div class='stat-card'>
+      <div class='fw-bold mb-3'>Per-Asset Quantum Risk Score</div>
+      <table class='qshield-table'>
+        <thead><tr><th>Asset</th><th>TLS</th><th>Score</th><th>Label</th><th>HNDL Risk</th><th>Cert Algorithm</th><th>Cert Days</th></tr></thead>
+        <tbody id='rating-tbody'></tbody>
+      </table>
+    </div>
+  </div>
+  <script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    await qshield.init('rating');
+    document.getElementById('page-content').style.display = 'block';
+    const [summary, results] = await Promise.all([qshield.api('/api/summary/'), qshield.api('/api/results/')]);
+    const es   = summary.enterprise_score;
+    const tier = summary.enterprise_tier;
+    document.getElementById('ent-score').textContent = es + '/1000';
+    document.getElementById('avg-score').textContent = summary.avg_score + '/100';
+    document.getElementById('high-risk').textContent = (summary.label_counts?.Critical||0) + (summary.label_counts?.['Quantum Vulnerable']||0);
+    document.getElementById('ent-tier').textContent  = tier;
+    document.getElementById('ent-tier').style.color  = es>700?'#27AE60':es>=400?'#F39C12':'#E74C3C';
+    ['elite','std','legacy'].forEach(k => {
+      const el = document.getElementById('tier-'+k+'-status');
+      const match = (k==='elite'&&tier==='Elite-PQC')||(k==='std'&&tier==='Standard')||(k==='legacy'&&tier==='Legacy');
+      el.innerHTML = match ? "<span class='badge-quantum-safe'>CURRENT</span>" : "--";
+    });
+    // Score bar chart
+    new Chart(document.getElementById('scoreChart'),{
+      type:'bar',
+      data:{labels:results.map(r=>r.hostname),
+            datasets:[{label:'Quantum Score',data:results.map(r=>r.quantum_score||0),
+                       backgroundColor:results.map(r=>r.quantum_score>=90?'#27AE60':r.quantum_score>=60?'#F39C12':r.quantum_score>=30?'#E74C3C':'#1C2833')}]},
+      options:{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{min:0,max:100}}}
+    });
+    document.getElementById('rating-tbody').innerHTML = results.map(r=>{
+      const sc = r.quantum_score||0;
+      const lc = qshield.getLabelClass(r.label);
+      const rc = qshield.getRiskClass(r.hndl_risk);
+      return `<tr><td><strong>${r.hostname}</strong></td><td>${r.tls_version||'--'}</td>
+        <td><strong style='color:${sc>=60?"#27AE60":"#E74C3C"}'>${sc}/100</strong></td>
+        <td><span class='${lc}'>${r.label||'--'}</span></td>
+        <td><span class='${rc}'>${r.hndl_risk||'--'}</span></td>
+        <td style='font-size:11px'>${r.cert_sig_algorithm||'--'}</td>
+        <td>${r.cert_days_remaining??'--'} days</td></tr>`;
+    }).join('');
+  });
+  </script>
+</body></html>

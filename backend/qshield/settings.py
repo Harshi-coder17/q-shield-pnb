@@ -1,7 +1,3 @@
-# backend/qshield/settings.py
-# Q-Shield — Django Settings (Pure REST API — no HTML rendering)
-# Owner: Member 2 (Django Backend & API Infrastructure Engineer)
- 
 import os
 from pathlib import Path
 from dotenv import load_dotenv
@@ -52,7 +48,7 @@ TEMPLATES = [{
         'django.contrib.messages.context_processors.messages',
     ]},
 }]
-
+ 
 WSGI_APPLICATION = 'qshield.wsgi.application'
  
 # ── Database ─────────────────────────────────────────────────────

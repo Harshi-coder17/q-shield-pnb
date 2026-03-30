@@ -1,8 +1,6 @@
 # backend/qshield/models.py
 # Q-Shield — Django ORM Models
-# Owner: Member 2 (Django Backend & API Infrastructure Engineer)
 # SRS References: All FRs requiring data storage
- 
 from django.db import models
 from django.contrib.auth.models import User
 import json
@@ -120,10 +118,7 @@ class ScheduledScan(models.Model):
     cron_minute= models.IntegerField(default=0)
     is_enabled = models.BooleanField(default=True)
     last_run   = models.DateTimeField(null=True, blank=True)
-
     created_by = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
     class Meta: ordering = ['-created_at']
-
-
 

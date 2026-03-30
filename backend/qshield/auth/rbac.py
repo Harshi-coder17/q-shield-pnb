@@ -1,20 +1,29 @@
+# backend/qshield/auth/rbac.py
 from functools import wraps
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
- 
+
 ROLE_PERMISSIONS = {
     'admin':   {'scan','view','export','configure','manage_users','view_logs'},
     'checker': {'view', 'export'},
     'auditor': {'view'},
 }
- 
+
 def get_user_role(request) -> str:
-    try:    return request.user.profile.role
-    except: return 'auditor'
- 
+    user = request.user
+
+    #  SUPERUSER OVERRIDE 
+    if user.is_superuser:
+        return 'admin'
+
+    try:
+        return request.user.profile.role
+    except:
+        return 'auditor'
+
 def has_permission(request, permission: str) -> bool:
     return permission in ROLE_PERMISSIONS.get(get_user_role(request), set())
- 
+
 def require_permission(permission: str):
     """Decorator — returns 403 JSON if user lacks permission."""
     def decorator(view_func):

@@ -1,3 +1,4 @@
+# backend/qshield/apps.py
 from django.apps import AppConfig
  
 class QshieldConfig(AppConfig):

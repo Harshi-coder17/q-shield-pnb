@@ -1,3 +1,6 @@
+# backend/qshield/utils/logger.py
+# Q-Shield — Audit Trail  |  SRS FR-14
+ 
 import logging
 from qshield.models import AuditLog
  
@@ -16,7 +19,6 @@ def audit(request, event_type: str, target: str = '',
     ip = (request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip()
           or request.META.get('REMOTE_ADDR', '')) if request else ''
     ua = request.META.get('HTTP_USER_AGENT', '')[:300] if request else ''
-
     try:
         AuditLog.objects.create(
             user_id=uid, event_type=event_type,

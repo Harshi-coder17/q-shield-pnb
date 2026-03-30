@@ -76,7 +76,7 @@ class TLSScanner:
                 (self.hostname, self.port), timeout=self.timeout
             ) as raw_sock:
                 with ctx.wrap_socket(raw_sock, server_hostname=self.hostname) as tls_sock:
-                    tls_version = tls_sock.version()
+                    tls_version = tls_sock.version() or 'UNKNOWN'  # ✅ FIX
                     cipher_info = tls_sock.cipher()
                     der_cert = tls_sock.getpeercert(binary_form=True)
                     peer_cert_dict = tls_sock.getpeercert()
@@ -132,7 +132,7 @@ class TLSScanner:
                 (self.hostname, self.port), timeout=self.timeout
             ) as raw_sock:
                 with ctx.wrap_socket(raw_sock, server_hostname=self.hostname) as tls_sock:
-                    tls_version = tls_sock.version()
+                    tls_version = tls_sock.version() or 'UNKNOWN'  
                     cipher_info = tls_sock.cipher()
                     der_cert = tls_sock.getpeercert(binary_form=True)
 
@@ -169,26 +169,54 @@ class TLSScanner:
         subject_dn = cert.subject.rfc4514_string()
         issuer_dn = cert.issuer.rfc4514_string()
 
-        not_before = cert.not_valid_before_utc
-        not_after = cert.not_valid_after_utc
+        # version compatibility
+        try:
+            not_before = cert.not_valid_before_utc
+            not_after = cert.not_valid_after_utc
+        except AttributeError:
+            not_before = cert.not_valid_before
+            not_after = cert.not_valid_after
+
+        #  timezone normalization
+        if not_before.tzinfo is None:
+            not_before = not_before.replace(tzinfo=timezone.utc)
+        if not_after.tzinfo is None:
+            not_after = not_after.replace(tzinfo=timezone.utc)
 
         now = datetime.now(timezone.utc)
-        days_remaining = (not_after - now).days
 
-        sig_oid = cert.signature_algorithm_oid.dotted_string
+        #  safe days calc
+        try:
+            days_remaining = (not_after - now).days
+        except Exception:
+            days_remaining = None
+
+        #  safe sig oid
+        try:
+            sig_oid = cert.signature_algorithm_oid.dotted_string
+        except Exception:
+            sig_oid = 'unknown'
+
         sig_name = OID_ALGORITHM_MAP.get(sig_oid, f'Unknown ({sig_oid})')
 
-        pub_key = cert.public_key()
-        key_size = self._get_key_size(pub_key)
-        key_type = self._get_key_type(pub_key)
+        #  safe pub key
+        try:
+            pub_key = cert.public_key()
+            key_size = self._get_key_size(pub_key)
+            key_type = self._get_key_type(pub_key)
+        except Exception:
+            key_size = 0
+            key_type = 'Unknown'
 
-        cipher_name = cipher_info[0] if cipher_info else 'UNKNOWN'
-        cipher_bits = cipher_info[2] if cipher_info else 0
+        #  safe cipher parsing
+        cipher_name = cipher_info[0] if cipher_info and len(cipher_info) > 0 else 'UNKNOWN'
+        cipher_bits = cipher_info[2] if cipher_info and len(cipher_info) > 2 else 0
 
         if tls_version == 'TLSv1.3':
             forward_secrecy = True
         else:
             forward_secrecy = 'ECDHE' in cipher_name or 'DHE' in cipher_name
+
         is_aead = (
             'GCM' in cipher_name or
             'CCM' in cipher_name or
@@ -266,21 +294,34 @@ class TLSScanner:
             return pub_key.key_size
         except AttributeError:
             try:
+                # ECC fallback
+                if hasattr(pub_key, 'curve'):
+                    return pub_key.curve.key_size
                 return pub_key.public_numbers().x.bit_length()
             except Exception:
                 return 0
 
     def _get_key_type(self, pub_key) -> str:
-        t = type(pub_key).__name__
-        if 'RSA' in t:
-            return 'RSA'
-        if 'EC' in t:
-            return 'ECDSA'
-        if 'DSA' in t:
-            return 'DSA'
-        if 'Ed25519' in t:
-            return 'Ed25519'
-        return 'Unknown'
+        try:
+            if isinstance(pub_key, rsa.RSAPublicKey):
+                return 'RSA'
+            if isinstance(pub_key, ec.EllipticCurvePublicKey):
+                return 'ECDSA'
+            
+            #  Fallback 
+            t = type(pub_key).__name__
+            if 'RSA' in t:
+                return 'RSA'
+            if 'EC' in t or 'EllipticCurve' in t:
+                return 'ECDSA'
+            if 'DSA' in t:
+                return 'DSA'
+            if 'Ed25519' in t:
+                return 'Ed25519'
+            
+            return 'Unknown'
+        except Exception:
+            return 'Unknown'
 
 
 # ── Quick test — run directly to verify scanner works ──

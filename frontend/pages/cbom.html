@@ -1,0 +1,127 @@
+<!-- frontend/pages/cbom.html — Standalone HTML (no Django templates) -->
+<!DOCTYPE html>
+<html lang='en' id='html-root'>
+<head>
+  <meta charset='UTF-8'><title>Q-Shield | CBOM</title>
+  <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css'>
+  <link rel='stylesheet' href='../static/css/qshield.css'>
+  <script src='https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js'></script>
+  <script src='../static/js/qshield.js'></script>
+</head>
+<body>
+  <div id='app-layout'></div>
+  <div id='page-content' style='display:none'>
+    <!-- Stat Cards -->
+    <div class='row g-3 mb-4'>
+      <div class='col'><div class='stat-card gold'><div class='stat-label'>Total Algorithms</div>
+        <div class='stat-number' id='c-algs'>--</div></div></div>
+      <div class='col'><div class='stat-card danger'><div class='stat-label'>Quantum Vulnerable</div>
+        <div class='stat-number text-danger' id='c-vuln'>--</div></div></div>
+      <div class='col'><div class='stat-card success'><div class='stat-label'>PQC Algorithms</div>
+        <div class='stat-number text-success' id='c-pqc'>--</div></div></div>
+      <div class='col'><div class='stat-card'><div class='stat-label'>Unique Protocols</div>
+        <div class='stat-number' id='c-proto'>--</div></div></div>
+    </div>
+    <!-- Charts Row -->
+    <div class='row g-3 mb-4'>
+      <div class='col-md-4'><div class='stat-card'>
+        <div class='fw-bold mb-2 small text-muted text-uppercase'>Key Length Distribution</div>
+        <canvas id='keyLengthChart' height='200'></canvas></div></div>
+      <div class='col-md-4'><div class='stat-card'>
+        <div class='fw-bold mb-2 small text-muted text-uppercase'>Cipher Suites</div>
+        <canvas id='cipherChart' height='200'></canvas></div></div>
+      <div class='col-md-4'><div class='stat-card'>
+        <div class='fw-bold mb-2 small text-muted text-uppercase'>TLS Version Usage</div>
+        <canvas id='tlsChart' height='200'></canvas></div></div>
+    </div>
+    <!-- Export Buttons -->
+    <div class='d-flex gap-2 mb-3'>
+      <button class='btn btn-sm btn-warning fw-bold' onclick="window.open(qshield.API_BASE+'/api/export/json/')">Export JSON</button>
+      <button class='btn btn-sm btn-outline-dark' onclick="window.open(qshield.API_BASE+'/api/export/csv/')">Export CSV</button>
+      <button class='btn btn-sm btn-danger' onclick="window.open(qshield.API_BASE+'/api/export/pdf/')">Export PDF</button>
+    </div>
+    <!-- Full CBOM Table -->
+    <div class='stat-card'>
+      <div class='fw-bold mb-3'>Cryptographic Bill of Materials — Cert-In Annexure-A</div>
+      <ul class='nav nav-tabs mb-3' id='cbomTabs'>
+        <li class='nav-item'><a class='nav-link active' data-bs-toggle='tab' href='#certs-tab'>Certificates</a></li>
+        <li class='nav-item'><a class='nav-link' data-bs-toggle='tab' href='#keys-tab'>Keys</a></li>
+        <li class='nav-item'><a class='nav-link' data-bs-toggle='tab' href='#algs-tab'>Algorithms</a></li>
+        <li class='nav-item'><a class='nav-link' data-bs-toggle='tab' href='#proto-tab'>Protocols</a></li>
+      </ul>
+      <div class='tab-content'>
+        <div class='tab-pane fade show active' id='certs-tab'>
+          <table class='qshield-table'><thead><tr>
+            <th>Hostname</th><th>Subject</th><th>Issuer</th><th>Algorithm</th><th>Key Size</th><th>Days Left</th><th>SHA1 Fingerprint</th>
+          </tr></thead><tbody id='cbom-certs-tbody'></tbody></table></div>
+        <div class='tab-pane fade' id='keys-tab'>
+          <table class='qshield-table'><thead><tr>
+            <th>Key Type</th><th>Key Size (bits)</th><th>Classical Security (bits)</th><th>Quantum Resistant</th>
+          </tr></thead><tbody id='cbom-keys-tbody'></tbody></table></div>
+        <div class='tab-pane fade' id='algs-tab'>
+          <table class='qshield-table'><thead><tr>
+            <th>Algorithm Name</th><th>Standard</th><th>OID</th><th>PQC</th><th>Vulnerability Risk</th>
+          </tr></thead><tbody id='cbom-algs-tbody'></tbody></table></div>
+        <div class='tab-pane fade' id='proto-tab'>
+          <table class='qshield-table'><thead><tr>
+            <th>Protocol Version</th><th>Cipher Suite</th><th>Key Exchange</th><th>Forward Secrecy</th>
+          </tr></thead><tbody id='cbom-proto-tbody'></tbody></table></div>
+      </div>
+    </div>
+  </div>
+  <script src='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js'></script>
+  <script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    await qshield.init('cbom');
+    document.getElementById('page-content').style.display = 'block';
+    const cbom = await qshield.api('/api/export/json/');
+    if (!cbom) return;
+    document.getElementById('c-algs').textContent   = cbom.algorithms?.length || 0;
+    document.getElementById('c-pqc').textContent    = cbom.summary?.pqc_count || 0;
+    document.getElementById('c-vuln').textContent   = cbom.summary?.quantum_vulnerable || 0;
+    document.getElementById('c-proto').textContent  = cbom.protocols?.length || 0;
+    // Key Length Chart
+    const ksMap = {};
+    (cbom.keys||[]).forEach(k => { ksMap[k.key_size_bits+'-bit'] = (ksMap[k.key_size_bits+'-bit']||0)+1; });
+    new Chart(document.getElementById('keyLengthChart'),{
+      type:'doughnut',
+      data:{labels:Object.keys(ksMap),datasets:[{data:Object.values(ksMap),backgroundColor:['#1B2A4A','#8B1A1A','#D4AC0D','#27AE60']}]},
+      options:{plugins:{legend:{position:'bottom',labels:{font:{size:10}}}}}
+    });
+    // Cipher Chart
+    const cipherMap = {};
+    (cbom.protocols||[]).forEach(p => { const k=p.cipher_suite?.split('_').slice(-2).join('_')||'Other'; cipherMap[k]=(cipherMap[k]||0)+1; });
+    new Chart(document.getElementById('cipherChart'),{
+      type:'bar',
+      data:{labels:Object.keys(cipherMap),datasets:[{data:Object.values(cipherMap),backgroundColor:'#D4AC0D'}]},
+      options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}
+    });
+    // TLS Chart
+    const tlsMap = {};
+    (cbom.protocols||[]).forEach(p => { const t=p.protocol_version||'Unknown'; tlsMap[t]=(tlsMap[t]||0)+1; });
+    new Chart(document.getElementById('tlsChart'),{
+      type:'pie',
+      data:{labels:Object.keys(tlsMap),datasets:[{data:Object.values(tlsMap),backgroundColor:['#27AE60','#F39C12','#E74C3C']}]},
+      options:{plugins:{legend:{position:'bottom',labels:{font:{size:10}}}}}
+    });
+    // Fill tables
+    document.getElementById('cbom-certs-tbody').innerHTML = (cbom.certificates||[]).map(c=>`<tr>
+      <td><strong>${c.hostname}</strong></td><td style='font-size:11px'>${c.cert_subject||'--'}</td>
+      <td style='font-size:11px'>${c.cert_issuer||'--'}</td><td>${c.sig_algorithm||'--'}</td>
+      <td>${c.cert_key_size||'--'}-bit</td>
+      <td><span class='${c.cert_days_remaining>30?"badge-quantum-safe":"badge-critical"}'>${c.cert_days_remaining||'--'}</span></td>
+      <td style='font-size:9px'>${c.cert_sha1_fingerprint||'--'}</td></tr>`).join('');
+    document.getElementById('cbom-keys-tbody').innerHTML = (cbom.keys||[]).map(k=>`<tr>
+      <td>${k.key_type}</td><td>${k.key_size_bits}-bit</td><td>${k.classical_security_bits} bits</td>
+      <td><span class='${k.quantum_resistance==="YES"?"badge-quantum-safe":"badge-vulnerable"}'>${k.quantum_resistance}</span></td></tr>`).join('');
+    document.getElementById('cbom-algs-tbody').innerHTML = (cbom.algorithms||[]).map(a=>`<tr>
+      <td>${a.algorithm_name}</td><td>${a.standard||'--'}</td><td style='font-size:10px'>${a.oid||'--'}</td>
+      <td><span class='${a.is_pqc?"badge-quantum-safe":"badge-vulnerable"}'>${a.is_pqc?'YES':'NO'}</span></td>
+      <td>${a.vulnerability_risk||'--'}</td></tr>`).join('');
+    document.getElementById('cbom-proto-tbody').innerHTML = (cbom.protocols||[]).map(p=>`<tr>
+      <td>${p.protocol_version}</td><td style='font-size:11px'>${p.cipher_suite}</td>
+      <td>${p.key_exchange}</td>
+      <td><span class='${p.forward_secrecy?"badge-quantum-safe":"badge-vulnerable"}'>${p.forward_secrecy?'YES':'NO'}</span></td></tr>`).join('');
+  });
+  </script>
+</body></html>

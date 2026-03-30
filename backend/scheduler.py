@@ -1,6 +1,8 @@
+# backend/scheduler.py
+ 
 import os, django, json, logging
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'qshield.settings')
-django.setup()  # MUST call before importing Django models
+# django.setup()  # MUST call before importing Django models
  
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron         import CronTrigger
@@ -51,11 +53,8 @@ def run_scheduled_scan_job():
 def start_scheduler():
     global _scheduler
     _scheduler = BackgroundScheduler()
-    _scheduler.add_job(
-        func=run_scheduled_scan_job,
-        trigger=CronTrigger(hour=2, minute=0),
-        id='daily_scan',
-        replace_existing=True
-    )
+    _scheduler.add_job(func=run_scheduled_scan_job,
+                       trigger=CronTrigger(hour=2, minute=0),
+                       id='daily_scan', replace_existing=True)
     _scheduler.start()
     logger.info('APScheduler started — daily scan at 02:00')
