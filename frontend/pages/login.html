@@ -43,18 +43,33 @@
       const errDiv   = document.getElementById('error-msg');
       errDiv.classList.add('d-none');
       // Step 1: Get CSRF cookie from Django
-      await fetch(qshield.API_BASE + '/api/csrf/', { credentials: 'include' });
+      await fetch(qshield.API_BASE + '/api/csrf/', {
+        credentials: 'include'
+      });
+
+      await new Promise(r => setTimeout(r, 100));
+      console.log("CSRF:", qshield.getCsrf());
+
       // Step 2: POST credentials as JSON
       const resp = await fetch(qshield.API_BASE + '/api/login/', {
         method: 'POST', credentials: 'include',
         headers: { 'Content-Type': 'application/json', 'X-CSRFToken': qshield.getCsrf() },
         body: JSON.stringify({ username, password })
       });
-      const data = await resp.json();
+      let data;
+      try {
+        data = await resp.json();
+      } catch (e) {
+        const text = await resp.text();
+        console.error("Non-JSON response:", text);
+        errDiv.textContent = "Server error (CSRF or auth issue)";
+        errDiv.classList.remove('d-none');
+        return;
+      }
       if (resp.ok && data.success) {
         sessionStorage.setItem('qshield_role', data.role);
         sessionStorage.setItem('qshield_user', data.username);
-        window.location.href = 'index.html';
+        window.location.href = '/pages/index.html';
       } else {
         errDiv.textContent = data.error || 'Login failed';
         errDiv.classList.remove('d-none');

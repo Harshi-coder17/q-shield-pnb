@@ -88,9 +88,10 @@ CORS_ALLOW_CREDENTIALS = True  # required for session-based auth
 LOGIN_URL = '/api/login/'
 SESSION_COOKIE_AGE      = 3600
 SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SAMESITE = 'None'   # required for cross-origin cookie
+SESSION_COOKIE_SAMESITE = 'Lax'   # required for cross-origin cookie
 SESSION_COOKIE_SECURE   = False    # set True in production (HTTPS)
-CSRF_COOKIE_SAMESITE    = 'None'
+CSRF_COOKIE_SAMESITE    = 'Lax'
+CSRF_COOKIE_HTTPONLY = False
 CSRF_TRUSTED_ORIGINS    = ['http://localhost:3000']
  
 # ── Production Security ──────────────────────────────────────────

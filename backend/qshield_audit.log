@@ -231,3 +231,273 @@ ModuleNotFoundError: No module named 'backend'
 2026-03-30 08:55:24,929 INFO: AUDIT | user=root | SCAN | target=google.com | Score:75.5 Label:PQC Ready
 2026-03-30 08:58:13,589 INFO: /Users/harshu/Desktop/q-shield-pnb/backend/scanner/tls_scanner.py changed, reloading.
 2026-03-30 09:00:13,720 INFO: AUDIT | user=root | SCAN | target=google.com | Score:75.5 Label:PQC Ready
+2026-03-30 09:22:29,055 INFO: /Users/harshu/Desktop/q-shield-pnb/backend/qshield/views.py changed, reloading.
+2026-03-30 09:23:56,477 INFO: AUDIT | user=root | LOGIN | target= | Role: admin
+2026-03-30 09:24:20,453 ERROR: Internal Server Error: /api/export/pdf/
+Traceback (most recent call last):
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/reportlab/lib/colors.py", line 928, in __call__
+    return HexColor(arg)
+           ^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/reportlab/lib/colors.py", line 387, in HexColor
+    val = int(val,b)
+          ^^^^^^^^^^
+ValueError: invalid literal for int() with base 16: 'xf39c1'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/reportlab/platypus/paraparser.py", line 3215, in parse
+    self.feed(text)
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/html/parser.py", line 110, in feed
+    self.goahead(0)
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/html/parser.py", line 170, in goahead
+    k = self.parse_starttag(i)
+        ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/html/parser.py", line 337, in parse_starttag
+    self.handle_starttag(tag, attrs)
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/reportlab/platypus/paraparser.py", line 3238, in handle_starttag
+    start(attrs or {})
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/reportlab/platypus/paraparser.py", line 2821, in start_font
+    A = self.getAttributes(attr,_spanAttrMap)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/reportlab/platypus/paraparser.py", line 3077, in getAttributes
+    v = func(self,v) if isinstance(func,_ExValidate) else func(v)
+                                                          ^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/reportlab/lib/colors.py", line 931, in __call__
+    raise ValueError('Invalid color value %r' % arg)
+ValueError: Invalid color value '#xf39c1'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/views/decorators/http.py", line 43, in inner
+    return func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/contrib/auth/decorators.py", line 23, in _wrapper_view
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/backend/qshield/auth/rbac.py", line 38, in wrapped
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/backend/qshield/views.py", line 200, in export_pdf
+    pdf_bytes = PDFReportGenerator().generate(results, cbom)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/backend/reporting/pdf_report.py", line 105, in generate
+    Paragraph(f'<font color="#{lcolor.hexval()[1:][:6]}">{label}</font>',
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/reportlab/platypus/paragraph.py", line 1809, in __init__
+    self._setup(text, style, bulletText or getattr(style,'bulletText',None), frags, cleanBlockQuotedText)
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/reportlab/platypus/paragraph.py", line 1830, in _setup
+    style, frags, bulletTextFrags = _parser.parse(text,style)
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/reportlab/platypus/paraparser.py", line 3217, in parse
+    annotateException('\nparagraph text %s caused exception' % ascii(text))
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/reportlab/lib/utils.py", line 1176, in annotateException
+    rl_reraise(t,t(sep.join((_ for _ in (msg,str(v),postMsg) if _))),b)
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/reportlab/lib/utils.py", line 138, in rl_reraise
+    raise v.with_traceback(b)
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/reportlab/platypus/paraparser.py", line 3215, in parse
+    self.feed(text)
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/html/parser.py", line 110, in feed
+    self.goahead(0)
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/html/parser.py", line 170, in goahead
+    k = self.parse_starttag(i)
+        ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/html/parser.py", line 337, in parse_starttag
+    self.handle_starttag(tag, attrs)
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/reportlab/platypus/paraparser.py", line 3238, in handle_starttag
+    start(attrs or {})
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/reportlab/platypus/paraparser.py", line 2821, in start_font
+    A = self.getAttributes(attr,_spanAttrMap)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/reportlab/platypus/paraparser.py", line 3077, in getAttributes
+    v = func(self,v) if isinstance(func,_ExValidate) else func(v)
+                                                          ^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/reportlab/lib/colors.py", line 931, in __call__
+    raise ValueError('Invalid color value %r' % arg)
+ValueError: 
+paragraph text '<para><font color="#xf39c1">PQC Ready</font></para>' caused exception Invalid color value '#xf39c1'
+2026-03-30 09:27:40,481 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 09:27:40,481 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 09:29:06,691 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 09:29:06,702 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 09:29:15,347 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 09:29:39,574 WARNING: Forbidden (CSRF cookie not set.): /api/login/
+2026-03-30 09:29:40,725 WARNING: Forbidden (CSRF cookie not set.): /api/login/
+2026-03-30 09:29:45,975 WARNING: Forbidden (CSRF cookie not set.): /api/login/
+2026-03-30 09:29:47,708 WARNING: Forbidden (CSRF cookie not set.): /api/login/
+2026-03-30 09:29:56,808 WARNING: Forbidden (CSRF cookie not set.): /api/login/
+2026-03-30 09:31:19,559 WARNING: Forbidden (CSRF cookie not set.): /api/login/
+2026-03-30 09:31:28,825 WARNING: Forbidden (CSRF cookie not set.): /api/login/
+2026-03-30 12:40:42,202 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 12:40:42,203 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 12:40:43,244 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 12:40:43,245 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 12:40:53,344 WARNING: Forbidden (CSRF cookie not set.): /api/login/
+2026-03-30 12:40:54,545 WARNING: Forbidden (CSRF cookie not set.): /api/login/
+2026-03-30 12:41:14,031 WARNING: Forbidden (CSRF cookie not set.): /api/login/
+2026-03-30 12:43:51,252 INFO: /Users/harshu/Desktop/q-shield-pnb/backend/qshield/settings.py changed, reloading.
+2026-03-30 12:43:55,710 INFO: /Users/harshu/Desktop/q-shield-pnb/backend/qshield/settings.py changed, reloading.
+2026-03-30 12:44:08,390 INFO: /Users/harshu/Desktop/q-shield-pnb/backend/qshield/settings.py changed, reloading.
+2026-03-30 12:44:51,352 INFO: AUDIT | user=root | LOGIN | target= | Role: admin
+2026-03-30 12:45:38,348 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-30 12:46:00,567 ERROR: Internal Server Error: /api/export/pdf/
+Traceback (most recent call last):
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/reportlab/lib/colors.py", line 928, in __call__
+    return HexColor(arg)
+           ^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/reportlab/lib/colors.py", line 387, in HexColor
+    val = int(val,b)
+          ^^^^^^^^^^
+ValueError: invalid literal for int() with base 16: 'xf39c1'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/reportlab/platypus/paraparser.py", line 3215, in parse
+    self.feed(text)
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/html/parser.py", line 110, in feed
+    self.goahead(0)
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/html/parser.py", line 170, in goahead
+    k = self.parse_starttag(i)
+        ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/html/parser.py", line 337, in parse_starttag
+    self.handle_starttag(tag, attrs)
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/reportlab/platypus/paraparser.py", line 3238, in handle_starttag
+    start(attrs or {})
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/reportlab/platypus/paraparser.py", line 2821, in start_font
+    A = self.getAttributes(attr,_spanAttrMap)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/reportlab/platypus/paraparser.py", line 3077, in getAttributes
+    v = func(self,v) if isinstance(func,_ExValidate) else func(v)
+                                                          ^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/reportlab/lib/colors.py", line 931, in __call__
+    raise ValueError('Invalid color value %r' % arg)
+ValueError: Invalid color value '#xf39c1'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/views/decorators/http.py", line 43, in inner
+    return func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/django/contrib/auth/decorators.py", line 23, in _wrapper_view
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/backend/qshield/auth/rbac.py", line 38, in wrapped
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/backend/qshield/views.py", line 200, in export_pdf
+    pdf_bytes = PDFReportGenerator().generate(results, cbom)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/backend/reporting/pdf_report.py", line 105, in generate
+    Paragraph(f'<font color="#{lcolor.hexval()[1:][:6]}">{label}</font>',
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/reportlab/platypus/paragraph.py", line 1809, in __init__
+    self._setup(text, style, bulletText or getattr(style,'bulletText',None), frags, cleanBlockQuotedText)
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/reportlab/platypus/paragraph.py", line 1830, in _setup
+    style, frags, bulletTextFrags = _parser.parse(text,style)
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/reportlab/platypus/paraparser.py", line 3217, in parse
+    annotateException('\nparagraph text %s caused exception' % ascii(text))
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/reportlab/lib/utils.py", line 1176, in annotateException
+    rl_reraise(t,t(sep.join((_ for _ in (msg,str(v),postMsg) if _))),b)
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/reportlab/lib/utils.py", line 138, in rl_reraise
+    raise v.with_traceback(b)
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/reportlab/platypus/paraparser.py", line 3215, in parse
+    self.feed(text)
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/html/parser.py", line 110, in feed
+    self.goahead(0)
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/html/parser.py", line 170, in goahead
+    k = self.parse_starttag(i)
+        ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/html/parser.py", line 337, in parse_starttag
+    self.handle_starttag(tag, attrs)
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/reportlab/platypus/paraparser.py", line 3238, in handle_starttag
+    start(attrs or {})
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/reportlab/platypus/paraparser.py", line 2821, in start_font
+    A = self.getAttributes(attr,_spanAttrMap)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/reportlab/platypus/paraparser.py", line 3077, in getAttributes
+    v = func(self,v) if isinstance(func,_ExValidate) else func(v)
+                                                          ^^^^^^^
+  File "/Users/harshu/Desktop/q-shield-pnb/venv/lib/python3.11/site-packages/reportlab/lib/colors.py", line 931, in __call__
+    raise ValueError('Invalid color value %r' % arg)
+ValueError: 
+paragraph text '<para><font color="#xf39c1">PQC Ready</font></para>' caused exception Invalid color value '#xf39c1'
+2026-03-30 12:46:00,624 WARNING: Not Found: /favicon.ico
+2026-03-30 12:46:16,666 INFO: AUDIT | user=root | EXPORT | target= | CSV CBOM
+2026-03-30 12:46:18,925 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-30 12:47:06,246 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-30 12:47:19,005 INFO: AUDIT | user=root | EXPORT | target= | CSV CBOM
+2026-03-30 12:47:42,153 INFO: AUDIT | user=root | LOGIN | target= | Role: admin
+2026-03-30 12:51:36,989 INFO: /Users/harshu/Desktop/q-shield-pnb/backend/reporting/pdf_report.py changed, reloading.
+2026-03-30 12:51:55,160 INFO: AUDIT | user=root | EXPORT | target= | PDF Report
+2026-03-30 12:56:27,501 INFO: /Users/harshu/Desktop/q-shield-pnb/backend/reporting/pdf_report.py changed, reloading.
+2026-03-30 12:56:54,142 INFO: AUDIT | user=root | EXPORT | target= | PDF Report
+2026-03-30 12:57:17,871 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 12:57:17,872 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 13:01:19,629 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-30 13:06:51,143 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-30 13:06:57,050 INFO: AUDIT | user=root | EXPORT | target= | PDF Report
+2026-03-30 13:13:58,436 INFO: AUDIT | user=root | LOGIN | target= | Role: admin
+2026-03-30 13:14:03,976 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-30 13:22:51,053 INFO: AUDIT | user=root | SCAN | target=google.com | Score:75.5 Label:PQC Ready
+2026-03-30 13:22:56,350 INFO: AUDIT | user=root | SCAN | target=google.com | Score:75.5 Label:PQC Ready
+2026-03-30 13:22:57,637 INFO: AUDIT | user=root | SCAN | target=google.com | Score:75.5 Label:PQC Ready
+2026-03-30 13:22:59,811 INFO: AUDIT | user=root | SCAN | target=google.com | Score:75.5 Label:PQC Ready
+2026-03-30 13:23:09,176 INFO: AUDIT | user=root | SCAN | target=google.com | Score:75.5 Label:PQC Ready
+2026-03-30 13:23:09,995 INFO: AUDIT | user=root | SCAN | target=google.com | Score:75.5 Label:PQC Ready
+2026-03-30 13:23:11,041 INFO: AUDIT | user=root | SCAN | target=google.com | Score:75.5 Label:PQC Ready
+2026-03-30 13:23:12,054 INFO: AUDIT | user=root | SCAN | target=google.com | Score:75.5 Label:PQC Ready
+2026-03-30 13:25:17,329 INFO: AUDIT | user=root | SCAN | target=github.com | Score:78 Label:PQC Ready
+2026-03-30 13:31:07,586 INFO: AUDIT | user=root | SCAN | target=google.com | Score:75.5 Label:PQC Ready
+2026-03-30 13:31:18,157 INFO: AUDIT | user=root | SCAN | target=github.com | Score:78 Label:PQC Ready
+2026-03-30 13:32:49,931 WARNING: Bad Request: /api/scan/
+2026-03-30 13:34:43,877 INFO: AUDIT | user=root | SCAN | target=www.pnbindia.in | Score:69.5 Label:PQC Ready
+2026-03-30 13:35:41,263 WARNING: Method Not Allowed (POST): /api/discover/
+2026-03-30 13:35:48,693 WARNING: Method Not Allowed (POST): /api/discover/
+2026-03-30 13:38:13,456 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-30 13:47:47,923 WARNING: Method Not Allowed (POST): /api/discover/
+2026-03-30 13:51:11,719 INFO: /Users/harshu/Desktop/q-shield-pnb/backend/qshield/views.py changed, reloading.
+2026-03-30 13:55:55,329 INFO: /Users/harshu/Desktop/q-shield-pnb/backend/qshield/views.py changed, reloading.
+2026-03-30 13:56:01,844 INFO: /Users/harshu/Desktop/q-shield-pnb/backend/qshield/views.py changed, reloading.
+2026-03-30 13:56:09,385 INFO: /Users/harshu/Desktop/q-shield-pnb/backend/qshield/views.py changed, reloading.
+2026-03-30 13:56:12,796 INFO: /Users/harshu/Desktop/q-shield-pnb/backend/qshield/views.py changed, reloading.
+2026-03-30 13:56:19,278 INFO: /Users/harshu/Desktop/q-shield-pnb/backend/qshield/views.py changed, reloading.
+2026-03-30 13:56:28,872 INFO: /Users/harshu/Desktop/q-shield-pnb/backend/qshield/views.py changed, reloading.
+2026-03-30 13:59:00,056 INFO: AUDIT | user=root | DISCOVER | target=google.com | 10 assets discovered
+2026-03-30 13:59:04,839 INFO: AUDIT | user=root | DISCOVER | target=google.com | 10 assets discovered
+2026-03-30 13:59:05,419 INFO: AUDIT | user=root | DISCOVER | target=google.com | 10 assets discovered
+2026-03-30 13:59:05,935 INFO: AUDIT | user=root | DISCOVER | target=google.com | 10 assets discovered
+2026-03-30 13:59:06,353 INFO: AUDIT | user=root | DISCOVER | target=google.com | 10 assets discovered
+2026-03-30 13:59:06,519 INFO: AUDIT | user=root | DISCOVER | target=google.com | 10 assets discovered
+2026-03-30 13:59:06,669 INFO: AUDIT | user=root | DISCOVER | target=google.com | 10 assets discovered
+2026-03-30 14:04:07,786 INFO: AUDIT | user=root | DISCOVER | target=google.com | 10 assets discovered
+2026-03-30 14:04:08,617 INFO: AUDIT | user=root | DISCOVER | target=google.com | 10 assets discovered
+2026-03-30 14:04:09,167 INFO: AUDIT | user=root | DISCOVER | target=google.com | 10 assets discovered
+2026-03-30 14:16:35,944 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 14:16:35,954 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 14:16:42,081 INFO: AUDIT | user=root | LOGIN | target= | Role: admin
+2026-03-30 14:17:15,610 INFO: AUDIT | user=root | DISCOVER | target=google.com | 10 assets discovered
+2026-03-30 14:17:40,494 INFO: AUDIT | user=root | DISCOVER | target=google.com | 10 assets discovered
+2026-03-30 14:21:10,801 INFO: AUDIT | user=root | DISCOVER | target=google.com | 10 assets discovered
+2026-03-30 14:25:03,180 INFO: AUDIT | user=root | DISCOVER | target=google.com | 10 assets discovered
+2026-03-30 14:25:34,199 INFO: AUDIT | user=root | DISCOVER | target=github.com | 10 assets discovered
+2026-03-30 14:26:19,855 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-30 14:28:44,758 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-30 14:28:52,637 INFO: AUDIT | user=root | SCAN | target=google.com | Score:75.5 Label:PQC Ready
+2026-03-30 14:29:17,656 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-30 14:29:30,228 INFO: AUDIT | user=root | EXPORT | target= | PDF Report
+2026-03-30 15:26:19,318 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 15:26:19,322 WARNING: Method Not Allowed (GET): /api/login/

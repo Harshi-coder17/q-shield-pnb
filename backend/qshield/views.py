@@ -58,7 +58,7 @@ def api_scan(request):
     if 'url' not in data:
         return JsonResponse({'error': 'url field required'}, status=400)
  
-    # CORRECT import path: utils.validators (NOT scanner.validators)
+
     from utils.validators import validate_target
     v = validate_target(data['url'])
     if not v['valid']:
@@ -192,20 +192,89 @@ def export_csv(request):
 def export_pdf(request):
     from reporting.cbom_generator import CBOMGenerator
     from reporting.pdf_report     import PDFReportGenerator
-    results   = [r.to_dict() for r in ScanResult.objects.all()]
-    cbom      = CBOMGenerator().generate_cbom(results)
+
+    results = [r.to_dict() for r in ScanResult.objects.all()]
+    print("TOTAL RESULTS:", len(results))  # 🔍 DEBUG
+
+    cbom = CBOMGenerator().generate_cbom(results)
     pdf_bytes = PDFReportGenerator().generate(results, cbom)
+
+    print("PDF SIZE:", len(pdf_bytes))  # 🔍 DEBUG
+
     audit(request, 'EXPORT', result_summary='PDF Report')
+
     resp = HttpResponse(pdf_bytes, content_type='application/pdf')
     resp['Content-Disposition'] = 'attachment; filename=qshield_report.pdf'
     return resp
 
 # ── TEMP STUBS (Phase 3+ integration pending) ──
 
-@require_http_methods(['GET'])
-@require_permission('view')
+@require_http_methods(['GET', 'POST'])
+@require_permission('scan')
 def api_discover(request):
-    return JsonResponse({'status': 'discover endpoint ready'})
+    """
+    Enhanced Asset Discovery API
+    - Supports GET (health check)
+    - Supports POST (actual discovery)
+    """
+
+   
+    if request.method == 'GET':
+        return JsonResponse({'status': 'discover endpoint ready'})
+
+    
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+    domain = data.get('domain') or data.get('url')
+    if not domain:
+        return JsonResponse({'error': 'Domain is required'}, status=400)
+
+    #  Validate target
+    from utils.validators import validate_target
+    v = validate_target(domain)
+    if not v['valid']:
+        return JsonResponse({'error': v['error']}, status=400)
+
+    base = v['hostname']
+
+    
+    discovered_assets = list(set([
+        base,
+        f'www.{base}',
+        f'api.{base}',
+        f'portal.{base}',
+        f'admin.{base}',
+        f'login.{base}',
+        f'mail.{base}',
+        f'dev.{base}',
+        f'stage.{base}',
+        f'test.{base}',
+    ]))
+
+    # 🗄️ Store discovered assets in DB (non-destructive)
+    for host in discovered_assets:
+        Asset.objects.get_or_create(hostname=host)
+
+    # 🔗 Build dependency graph from existing scans
+    from analysis.dep_graph import DependencyGraphEngine
+    graph = DependencyGraphEngine()
+
+    for r in ScanResult.objects.all():
+        graph.add_scan_result(r.to_dict())
+
+    # 🧾 Audit log
+    audit(request, 'DISCOVER', target=base,
+          result_summary=f'{len(discovered_assets)} assets discovered')
+
+    return JsonResponse({
+        'domain': base,
+        'discovered_assets': discovered_assets,
+        'count': len(discovered_assets),
+        'graph': graph.to_json()
+    })
 
 @require_http_methods(['GET'])
 @require_permission('view')

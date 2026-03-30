@@ -83,53 +83,143 @@
   </div>
  
   <script>
-  document.addEventListener('DOMContentLoaded', async () => {
-    await qshield.init('home');
-    document.getElementById('page-content').style.display = 'block';
-    loadHome();
-    setInterval(loadHome, 30000);
-  });
-  async function loadHome() {
-    const [summary, results] = await Promise.all([
-      qshield.api('/api/summary/'), qshield.api('/api/results/')
-    ]);
-    document.getElementById('s-total').textContent    = summary.total;
-    document.getElementById('s-score').textContent    = summary.enterprise_score+'/1000';
-    document.getElementById('s-highrisk').textContent = (summary.label_counts?.Critical||0)+(summary.label_counts?.['Quantum Vulnerable']||0);
-    document.getElementById('s-expiring').textContent = summary.expiring_certs||0;
-    const lc = summary.label_counts||{};
-    new Chart(document.getElementById('riskChart'),{
-      type:'bar',
-      data:{labels:['Critical','Vulnerable','PQC Ready','Quantum Safe'],
-            datasets:[{data:[lc.Critical||0,lc['Quantum Vulnerable']||0,lc['PQC Ready']||0,lc['Fully Quantum Safe']||0],
-                       backgroundColor:['#1C2833','#E74C3C','#F39C12','#27AE60']}]},
-      options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}
+
+    let riskChartInstance = null;
+    let statusPieInstance = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await qshield.init('home');
+      document.getElementById('page-content').style.display = 'block';
+      loadHome();
+      setInterval(loadHome, 30000);
     });
-    new Chart(document.getElementById('statusPie'),{
-      type:'pie',
-      data:{labels:['Elite-PQC','Standard','Legacy','Critical'],
-            datasets:[{data:[lc['Fully Quantum Safe']||0,lc['PQC Ready']||0,lc['Quantum Vulnerable']||0,lc.Critical||0],
-                       backgroundColor:['#27AE60','#9B59B6','#F39C12','#E74C3C']}]},
-      options:{plugins:{legend:{position:'bottom',labels:{font:{size:10}}}}}
-    });
-    const tbody = document.getElementById('asset-tbody');
-    tbody.innerHTML = results.map(r => {
-      const labelCls  = qshield.getLabelClass(r.label);
-      const riskCls   = qshield.getRiskClass(r.hndl_risk);
-      const sc        = r.quantum_score||0;
-      const scoreColor = sc>=90?'#27AE60':sc>=60?'#F39C12':sc>=30?'#E74C3C':'#1C2833';
-      return `<tr>
-        <td><strong>${r.hostname}</strong></td>
-        <td>${r.tls_version||'--'}</td>
-        <td style='font-size:11px'>${r.cipher_suite||'--'}</td>
-        <td>${r.cert_key_size||'--'}-bit</td>
-        <td><strong style='color:${scoreColor}'>${sc}/100</strong></td>
-        <td><span class='${labelCls}'>${r.label||'--'}</span></td>
-        <td><span class='${riskCls}'>${r.hndl_risk||'--'}</span></td>
-        <td style='font-size:11px'>${r.cert_issuer||'--'}</td>
-        <td style='font-size:11px'>${r.scanned_at?new Date(r.scanned_at).toLocaleString():'--'}</td>
-      </tr>`;
-    }).join('');
-  }
+
+    async function loadHome() {
+      
+      const [summary, results] = await Promise.all([
+        qshield.api('/api/summary/'), qshield.api('/api/results/')
+      ]);
+
+      document.getElementById('s-total').textContent    = summary.total;
+      document.getElementById('s-score').textContent    = summary.enterprise_score+'/1000';
+      document.getElementById('s-highrisk').textContent = (summary.label_counts?.Critical||0)+(summary.label_counts?.['Quantum Vulnerable']||0);
+      document.getElementById('s-expiring').textContent = summary.expiring_certs||0;
+
+      const lc = summary.label_counts||{};
+
+
+      if (riskChartInstance) {
+        riskChartInstance.destroy();
+      }
+
+      riskChartInstance = new Chart(document.getElementById('riskChart'),{
+        type:'bar',
+        data:{
+          labels:['Critical','Vulnerable','PQC Ready','Quantum Safe'],
+          datasets:[{
+            data:[
+              lc.Critical||0,
+              lc['Quantum Vulnerable']||0,
+              lc['PQC Ready']||0,
+              lc['Fully Quantum Safe']||0
+            ],
+            backgroundColor:['#1C2833','#E74C3C','#F39C12','#27AE60']
+          }]
+        },
+        options:{
+          plugins:{legend:{display:false}},
+          scales:{y:{beginAtZero:true}}
+        }
+      });
+
+
+      if (statusPieInstance) {
+        statusPieInstance.destroy();
+      }
+
+      statusPieInstance = new Chart(document.getElementById('statusPie'),{
+        type:'pie',
+        data:{
+          labels:['Elite-PQC','Standard','Legacy','Critical'],
+          datasets:[{
+            data:[
+              lc['Fully Quantum Safe']||0,
+              lc['PQC Ready']||0,
+              lc['Quantum Vulnerable']||0,
+              lc.Critical||0
+            ],
+            backgroundColor:['#27AE60','#9B59B6','#F39C12','#E74C3C']
+          }]
+        },
+        options:{
+          plugins:{
+            legend:{
+              position:'bottom',
+              labels:{font:{size:10}}
+            }
+          }
+        }
+      });
+
+      const tbody = document.getElementById('asset-tbody');
+      tbody.innerHTML = results.map(r => {
+        const labelCls  = qshield.getLabelClass(r.label);
+        const riskCls   = qshield.getRiskClass(r.hndl_risk);
+        const sc        = r.quantum_score||0;
+        const scoreColor = sc>=90?'#27AE60':sc>=60?'#F39C12':sc>=30?'#E74C3C':'#1C2833';
+
+        return `<tr>
+          <td><strong>${r.hostname}</strong></td>
+          <td>${r.tls_version||'--'}</td>
+          <td style='font-size:11px'>${r.cipher_suite||'--'}</td>
+          <td>${r.cert_key_size||'--'}-bit</td>
+          <td><strong style='color:${scoreColor}'>${sc}/100</strong></td>
+          <td><span class='${labelCls}'>${r.label||'--'}</span></td>
+          <td><span class='${riskCls}'>${r.hndl_risk||'--'}</span></td>
+          <td style='font-size:11px'>${r.cert_issuer||'--'}</td>
+          <td style='font-size:11px'>${r.scanned_at?new Date(r.scanned_at).toLocaleString():'--'}</td>
+        </tr>`;
+      }).join('');
+
+
+      const expiryBuckets = {
+        'Expired': 0,
+        '0-7 days': 0,
+        '7-30 days': 0,
+        '30+ days': 0
+      };
+
+      (results || []).forEach(r => {
+        const days = r.cert_days_remaining;
+
+        if (days === null || days === undefined) return;
+
+        if (days < 0) expiryBuckets['Expired']++;
+        else if (days <= 7) expiryBuckets['0-7 days']++;
+        else if (days <= 30) expiryBuckets['7-30 days']++;
+        else expiryBuckets['30+ days']++;
+      });
+
+      // clear previous chart (important)
+      const certCanvas = document.getElementById('certExpiry');
+      if (certCanvas.chart) {
+        certCanvas.chart.destroy();
+      }
+
+      certCanvas.chart = new Chart(certCanvas, {
+        type: 'bar',
+        data: {
+          labels: Object.keys(expiryBuckets),
+          datasets: [{
+            data: Object.values(expiryBuckets)
+          }]
+        },
+        options: {
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+      console.log(results);
+    }
   </script>
 </body></html>
