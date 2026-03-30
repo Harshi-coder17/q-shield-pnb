@@ -537,3 +537,13 @@ paragraph text '<para><font color="#xf39c1">PQC Ready</font></para>' caused exce
 2026-03-30 16:23:04,080 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
 2026-03-30 16:27:42,843 INFO: /Users/harshu/Desktop/q-shield-pnb/backend/reporting/pdf_report.py changed, reloading.
 2026-03-30 16:28:34,322 INFO: AUDIT | user=root | EXPORT | target= | PDF Report
+2026-03-30 16:30:48,923 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-30 16:31:11,650 INFO: AUDIT | user=root | DISCOVER | target=google.com | 10 assets discovered
+2026-03-30 17:00:27,975 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 17:00:27,984 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 17:00:27,985 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 17:00:34,630 INFO: AUDIT | user=root | LOGIN | target= | Role: admin
+2026-03-30 17:00:39,318 INFO: AUDIT | user=root | EXPORT | target= | PDF Report
+2026-03-30 17:00:47,785 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-30 17:00:51,869 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-30 17:01:08,264 INFO: AUDIT | user=root | DISCOVER | target=google.com | 10 assets discovered

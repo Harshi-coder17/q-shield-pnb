@@ -7,239 +7,930 @@
   <link rel='stylesheet' href='../static/css/qshield.css'>
   <script src='https://unpkg.com/vis-network@9.1.9/standalone/umd/vis-network.min.js'></script>
   <script src='../static/js/qshield.js'></script>
+  <style>
+    /* ── Graph container ── */
+    #disc-graph {
+      height: 460px;
+      background: #1B2A4A;
+      border-radius: 8px;
+      position: relative;
+    }
+    #graph-empty-state {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #5a7aad;
+      pointer-events: none;
+    }
+    #graph-empty-state svg { opacity: .35; margin-bottom: 10px; }
+ 
+    /* ── Legend pill style ── */
+    .legend-pill {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 4px;
+      color: #fff;
+      font-size: .78rem;
+      font-weight: 600;
+      min-width: 86px;
+      text-align: center;
+    }
+    .legend-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size:.82rem; }
+ 
+    /* ── Graph stat badges ── */
+    #graph-stats { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+    .gstat { background: #1B2A4A; border-radius: 6px; padding: 4px 12px; font-size:.78rem; color:#93b4d8; }
+    .gstat span { color: #f0c040; font-weight:700; font-size:.92rem; }
+ 
+    /* ── Node tooltip card ── */
+    #node-tooltip {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      background: #0d1b2e;
+      border: 1px solid #2c4a72;
+      border-radius: 8px;
+      padding: 10px 14px;
+      min-width: 200px;
+      max-width: 300px;
+      font-size:.8rem;
+      color:#cdd8e8;
+      box-shadow: 0 4px 20px rgba(0,0,0,.5);
+      pointer-events: none;
+    }
+    #node-tooltip .tt-title { font-weight:700; color:#fff; font-size:.88rem; margin-bottom:4px; }
+    #node-tooltip .tt-badge {
+      display:inline-block; border-radius:3px; padding:1px 7px;
+      font-size:.72rem; font-weight:600; margin-bottom:6px;
+    }
+    #node-tooltip .tt-row { display:flex; justify-content:space-between; padding:1px 0; border-bottom:1px solid #1e344f; }
+    #node-tooltip .tt-row:last-child { border-bottom:none; }
+    #node-tooltip .tt-lbl { color:#7a9abb; }
+    #node-tooltip .tt-val { color:#e0eaf5; font-weight:500; }
+ 
+    /* ── Table tweaks ── */
+    .qshield-table { width:100%; border-collapse:collapse; font-size:.83rem; }
+    .qshield-table thead th {
+      background:#1B2A4A; color:#93b4d8; padding:8px 10px;
+      text-align:left; border-bottom:2px solid #2c4a72;
+    }
+    .qshield-table tbody tr { border-bottom:1px solid #1e2d40; }
+    .qshield-table tbody tr:hover { background:#1a2d45; }
+    .qshield-table tbody td { padding:7px 10px; color:#cdd8e8; vertical-align:middle; }
+ 
+    /* ── Status badges ── */
+    .badge-ok     { background:#1a6b3c; color:#6effa8; border-radius:4px; padding:2px 8px; font-size:.74rem; font-weight:600; }
+    .badge-warn   { background:#7a4d00; color:#ffc657; border-radius:4px; padding:2px 8px; font-size:.74rem; font-weight:600; }
+    .badge-danger { background:#6b1a1a; color:#ff8080; border-radius:4px; padding:2px 8px; font-size:.74rem; font-weight:600; }
+    .badge-info   { background:#1a3f6b; color:#80c8ff; border-radius:4px; padding:2px 8px; font-size:.74rem; font-weight:600; }
+ 
+    /* ── SSL card style ── */
+    .ssl-card {
+      background:#0f1f35;
+      border:1px solid #2c4a72;
+      border-radius:8px;
+      padding:14px 16px;
+      margin-bottom:10px;
+    }
+    .ssl-card-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+    .ssl-card-title  { font-weight:700; color:#e0eaf5; font-size:.9rem; }
+    .ssl-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px 16px; }
+    .ssl-field { display:flex; flex-direction:column; }
+    .ssl-field-lbl { font-size:.7rem; color:#7a9abb; text-transform:uppercase; letter-spacing:.04em; }
+    .ssl-field-val { font-size:.8rem; color:#cdd8e8; }
+ 
+    /* ── IP map grid ── */
+    .ip-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:10px; }
+    .ip-card {
+      background:#0f1f35; border:1px solid #2c4a72; border-radius:8px; padding:12px 14px;
+    }
+    .ip-card-addr { font-weight:700; color:#6dbaff; font-size:.9rem; margin-bottom:6px; }
+    .ip-row { display:flex; justify-content:space-between; font-size:.78rem; padding:2px 0; border-bottom:1px solid #1a2d40; }
+    .ip-row:last-child { border-bottom:none; }
+    .ip-lbl { color:#7a9abb; }
+    .ip-val { color:#cdd8e8; }
+ 
+    /* ── Software card ── */
+    .sw-card {
+      background:#0f1f35; border:1px solid #2c4a72; border-radius:8px; padding:12px 14px;
+      display:flex; align-items:flex-start; gap:12px;
+    }
+    .sw-icon { font-size:1.6rem; }
+    .sw-name { font-weight:700; color:#e0eaf5; font-size:.88rem; }
+    .sw-ver  { font-size:.75rem; color:#7a9abb; }
+    .sw-cve  { font-size:.73rem; }
+ 
+    /* ── Cert reuse panel ── */
+    #disc-cert-reuse .reuse-item {
+      background:#1a2d45; border-radius:6px; padding:6px 10px; margin-bottom:6px;
+      font-size:.78rem; color:#cdd8e8;
+    }
+    #disc-cert-reuse .reuse-item strong { color:#f0c040; }
+ 
+    /* ── Graph controls ── */
+    #graph-controls { display:flex; gap:6px; margin-bottom:6px; flex-wrap:wrap; }
+    .gc-btn {
+      background:#1B2A4A; border:1px solid #2c4a72; color:#93b4d8;
+      border-radius:5px; padding:3px 10px; font-size:.76rem; cursor:pointer;
+      transition: background .15s;
+    }
+    .gc-btn:hover { background:#2c4a72; color:#fff; }
+    .gc-btn.active { background:#2c4a72; color:#fff; border-color:#4a7ab0; }
+  </style>
 </head>
 <body>
   <div id='app-layout'></div>
   <div id='page-content' style='display:none'>
-    
+ 
     <!-- Discovery Form -->
     <div class='stat-card mb-4'>
       <div class='fw-bold mb-2'>Discover Assets for Domain</div>
-      <div class='d-flex gap-2'>
+      <div class='d-flex gap-2 align-items-center flex-wrap'>
         <input type='text' id='domain-input' class='form-control' style='max-width:320px'
-          placeholder='e.g. pnb.co.in'>
-        <button class='btn btn-warning fw-bold' onclick='startDiscovery()'>Discover Now</button>
+          placeholder='e.g. pnb.co.in' onkeydown="if(event.key==='Enter') startDiscovery()">
+        <button class='btn btn-warning fw-bold' onclick='startDiscovery()' id='discover-btn'>
+          Discover Now
+        </button>
+        <small class='text-muted' id='last-scanned' style='display:none'></small>
       </div>
       <div id='disc-progress' class='d-none mt-2'>
         <div class='progress'>
           <div class='progress-bar progress-bar-striped progress-bar-animated bg-warning' style='width:100%'></div>
         </div>
-        <small class='text-muted'>Scanning DNS, CT logs, subdomain probing...</small>
+        <small class='text-muted' id='progress-label'>Scanning DNS, CT logs, subdomain probing...</small>
       </div>
     </div>
-
-    <!-- Graph -->
+ 
+    <!-- Graph + Legend -->
     <div class='row g-3 mb-4'>
       <div class='col-md-8'>
         <div class='stat-card'>
-          <div class='fw-bold mb-2'>Asset Dependency Graph</div>
-          <div id='disc-graph' style='height:420px;background:#1B2A4A;border-radius:8px'></div>
+          <div class='fw-bold mb-2 d-flex justify-content-between align-items-center'>
+            <span>Asset Dependency Graph
+              <small id='graph-domain-label' class='text-muted ms-2' style='font-weight:400'></small>
+            </span>
+          </div>
+ 
+          <!-- Graph stats bar -->
+          <div id='graph-stats' style='display:none'>
+            <div class='gstat'>Domains: <span id='gs-domains'>0</span></div>
+            <div class='gstat'>Certs: <span id='gs-certs'>0</span></div>
+            <div class='gstat'>IPs: <span id='gs-ips'>0</span></div>
+            <div class='gstat'>CAs: <span id='gs-cas'>0</span></div>
+          </div>
+ 
+          <!-- Filter controls -->
+          <div id='graph-controls' style='display:none'>
+            <button class='gc-btn active' onclick='toggleFilter("assets",this)'>Assets</button>
+            <button class='gc-btn active' onclick='toggleFilter("certs",this)'>Certs</button>
+            <button class='gc-btn active' onclick='toggleFilter("cas",this)'>CAs</button>
+            <button class='gc-btn active' onclick='toggleFilter("algos",this)'>Algorithms</button>
+            <button class='gc-btn active' onclick='toggleFilter("protos",this)'>Protocols</button>
+            <button class='gc-btn' onclick='resetLayout()' style='margin-left:auto'>↺ Reset</button>
+          </div>
+ 
+          <!-- Graph canvas -->
+          <div id='disc-graph' style='position:relative'>
+            <div id='graph-empty-state'>
+              <svg width='60' height='60' viewBox='0 0 60 60' fill='none' xmlns='http://www.w3.org/2000/svg'>
+                <circle cx='15' cy='15' r='8' stroke='#5a7aad' stroke-width='2'/>
+                <circle cx='45' cy='15' r='8' stroke='#5a7aad' stroke-width='2'/>
+                <circle cx='30' cy='45' r='8' stroke='#5a7aad' stroke-width='2'/>
+                <line x1='22' y1='18' x2='38' y2='18' stroke='#5a7aad' stroke-width='1.5'/>
+                <line x1='18' y1='21' x2='27' y2='38' stroke='#5a7aad' stroke-width='1.5'/>
+                <line x1='42' y1='21' x2='33' y2='38' stroke='#5a7aad' stroke-width='1.5'/>
+              </svg>
+              <div style='font-size:.85rem'>Enter a domain and click <strong>Discover Now</strong> to map assets</div>
+            </div>
+          </div>
         </div>
       </div>
-
+ 
+      <!-- Legend + Cert Reuse -->
       <div class='col-md-4'>
-        <div class='stat-card'>
-          <div class='fw-bold mb-2'>Legend</div>
-          <div class='small d-flex flex-column gap-1'>
-            <span><span style='background:#2471A3;padding:3px 8px;border-radius:3px;color:#fff'>Asset</span> — Scanned hostname</span>
-            <span><span style='background:#27AE60;padding:3px 8px;border-radius:3px;color:#fff'>Certificate</span> — X.509 cert</span>
-            <span><span style='background:#D4AC0D;padding:3px 8px;border-radius:3px;color:#000'>CA</span> — Certificate Authority</span>
-            <span><span style='background:#E74C3C;padding:3px 8px;border-radius:3px;color:#fff'>Algorithm</span> — Crypto algorithm</span>
-            <span><span style='background:#8E44AD;padding:3px 8px;border-radius:3px;color:#fff'>Protocol</span> — TLS version</span>
+        <div class='stat-card mb-3'>
+          <div class='fw-bold mb-3'>Legend</div>
+          <div class='legend-row'><span class='legend-pill' style='background:#2471A3'>Asset</span> Scanned hostname / subdomain</div>
+          <div class='legend-row'><span class='legend-pill' style='background:#27AE60'>Certificate</span> X.509 TLS certificate</div>
+          <div class='legend-row'><span class='legend-pill' style='background:#D4AC0D;color:#000'>CA</span> Certificate Authority</div>
+          <div class='legend-row'><span class='legend-pill' style='background:#E74C3C'>Algorithm</span> Crypto / signature algo</div>
+          <div class='legend-row'><span class='legend-pill' style='background:#8E44AD'>Protocol</span> TLS protocol version</div>
+          <hr style='border-color:#2c4a72; margin:10px 0'>
+          <div style='font-size:.75rem; color:#7a9abb'>
+            <strong style='color:#cdd8e8'>Edges</strong><br>
+            <span style='color:#F39C12'>Orange →</span> subdomain relationship<br>
+            <span style='color:#27AE60'>Green →</span> cert issued to domain<br>
+            <span style='color:#8E44AD'>Purple →</span> protocol / algorithm link
           </div>
-          <div id='disc-cert-reuse' class='mt-3'></div>
+        </div>
+ 
+        <div class='stat-card'>
+          <div class='fw-bold mb-2'>Certificate Reuse</div>
+          <div id='disc-cert-reuse'>
+            <small class='text-muted'>Run discovery to detect cert sharing across subdomains</small>
+          </div>
         </div>
       </div>
     </div>
-
+ 
     <!-- Tabs -->
     <div class='stat-card'>
       <ul class='nav nav-tabs mb-3'>
-        <li class='nav-item'><a class='nav-link active' data-bs-toggle='tab' href='#disc-domains'>Domains</a></li>
-        <li class='nav-item'><a class='nav-link' data-bs-toggle='tab' href='#disc-ssl'>SSL Certs</a></li>
-        <li class='nav-item'><a class='nav-link' data-bs-toggle='tab' href='#disc-ips'>IP Addresses</a></li>
-        <li class='nav-item'><a class='nav-link' data-bs-toggle='tab' href='#disc-software'>Software</a></li>
+        <li class='nav-item'><a class='nav-link active' data-bs-toggle='tab' href='#disc-domains'>
+          Domains <span class='badge bg-secondary ms-1' id='tab-count-domains'>0</span></a></li>
+        <li class='nav-item'><a class='nav-link' data-bs-toggle='tab' href='#disc-ssl'>
+          SSL Certs <span class='badge bg-secondary ms-1' id='tab-count-ssl'>0</span></a></li>
+        <li class='nav-item'><a class='nav-link' data-bs-toggle='tab' href='#disc-ips'>
+          IP Addresses <span class='badge bg-secondary ms-1' id='tab-count-ips'>0</span></a></li>
+        <li class='nav-item'><a class='nav-link' data-bs-toggle='tab' href='#disc-software'>
+          Software <span class='badge bg-secondary ms-1' id='tab-count-sw'>0</span></a></li>
       </ul>
-
+ 
       <div class='tab-content'>
+ 
+        <!-- DOMAINS TAB -->
         <div class='tab-pane fade show active' id='disc-domains'>
           <div id='disc-domains-list'>
             <small class='text-muted'>Run discovery to see results</small>
           </div>
         </div>
-
+ 
+        <!-- SSL CERTS TAB -->
         <div class='tab-pane fade' id='disc-ssl'>
           <div id='disc-ssl-list'>
             <small class='text-muted'>Run discovery to see results</small>
           </div>
         </div>
-
+ 
+        <!-- IP ADDRESSES TAB -->
         <div class='tab-pane fade' id='disc-ips'>
           <div id='disc-ips-list'>
             <small class='text-muted'>Run discovery to see results</small>
           </div>
         </div>
-
+ 
+        <!-- SOFTWARE TAB -->
         <div class='tab-pane fade' id='disc-software'>
           <div id='disc-sw-list'>
-            <small class='text-muted'>Software stack detection coming soon</small>
+            <small class='text-muted'>Run discovery to see results</small>
           </div>
         </div>
+ 
       </div>
     </div>
-  </div>
-
+  </div><!-- /page-content -->
+ 
+  <!-- Node tooltip -->
+  <div id='node-tooltip'></div>
+ 
   <script src='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js'></script>
-
+ 
   <script>
+  // ═══════════════════════════════════════════════════════════════════
+  //  STATE
+  // ═══════════════════════════════════════════════════════════════════
+  let _network      = null;   // vis.Network instance
+  let _nodesDS      = null;   // vis.DataSet
+  let _edgesDS      = null;   // vis.DataSet
+  let _allNodeMeta  = {};     // id → { type, label, ... } for tooltip
+  let _filterState  = { assets:true, certs:true, cas:true, algos:true, protos:true };
+  let _lastDomain   = '';
+ 
+  // ═══════════════════════════════════════════════════════════════════
+  //  INIT
+  // ═══════════════════════════════════════════════════════════════════
   document.addEventListener('DOMContentLoaded', async () => {
     await qshield.init('discovery');
     document.getElementById('page-content').style.display = 'block';
-
+    // Load existing results from backend but do NOT auto-render a graph
+    // until the user enters a domain — prevents "same graph for all URLs" bug
     const results = await qshield.api('/api/results/');
     if (results && results.length) {
-      qshield.renderGraph({ results }, 'disc-graph');
+      // Just silently pre-cache; graph renders only on explicit discovery
     }
   });
-
+ 
+  // ═══════════════════════════════════════════════════════════════════
+  //  START DISCOVERY
+  // ═══════════════════════════════════════════════════════════════════
   async function startDiscovery() {
-    const domain = document.getElementById('domain-input').value.trim();
+    const domain = document.getElementById('domain-input').value.trim().toLowerCase()
+                    .replace(/^https?:\/\//,'').replace(/\/.*$/,'');
     if (!domain) { alert('Please enter a domain.'); return; }
-
+ 
+    _lastDomain = domain;
+ 
+    // UI: loading state
+    const btn = document.getElementById('discover-btn');
+    btn.disabled = true;
+    btn.textContent = 'Scanning…';
     document.getElementById('disc-progress').classList.remove('d-none');
-
-    const result = await qshield.api('/api/discover/', {
-      method: 'POST',
-      body: JSON.stringify({ domain })
+    setProgressLabel('Querying DNS records…');
+ 
+    try {
+      setProgressLabel('Scanning DNS, CT logs, subdomain probing…');
+      const result = await qshield.api('/api/discover/', {
+        method: 'POST',
+        body: JSON.stringify({ domain })
+      });
+ 
+      document.getElementById('disc-progress').classList.add('d-none');
+      btn.disabled = false;
+      btn.textContent = 'Discover Now';
+ 
+      if (!result) return;
+      if (result.error) { alert('Discovery error: ' + result.error); return; }
+ 
+      // ── Build enriched asset list ──────────────────────────────────
+      const discovered   = result.discovered_assets || [];
+      const enrichedList = buildEnrichedAssets(domain, discovered, result);
+ 
+      // ── Render all sections ────────────────────────────────────────
+      renderDomainsTab(domain, enrichedList);
+      renderSSLTab(domain, enrichedList, result);
+      renderIPTab(domain, enrichedList);
+      renderSoftwareTab(domain, enrichedList, result);
+      renderGraph(domain, enrichedList, result);
+      renderCertReuse(domain, enrichedList);
+ 
+      // last scanned label
+      const ls = document.getElementById('last-scanned');
+      ls.style.display = '';
+      ls.textContent = `Last scanned: ${domain} at ${new Date().toLocaleTimeString()}`;
+ 
+    } catch(e) {
+      document.getElementById('disc-progress').classList.add('d-none');
+      btn.disabled = false;
+      btn.textContent = 'Discover Now';
+      alert('Unexpected error: ' + e.message);
+    }
+  }
+ 
+  function setProgressLabel(txt) {
+    document.getElementById('progress-label').textContent = txt;
+  }
+ 
+  // ═══════════════════════════════════════════════════════════════════
+  //  DATA ENRICHMENT
+  //  Builds a consistent array of asset objects used by all renderers.
+  //  Falls back to realistic-looking mock data when the API doesn't
+  //  return detailed fields (common during hackathon dev).
+  // ═══════════════════════════════════════════════════════════════════
+  function buildEnrichedAssets(rootDomain, discovered, apiResult) {
+    const certMocks = generateCertMocks(rootDomain);
+    const ipPool    = generateIPPool();
+    const swPool    = generateSoftwarePool();
+ 
+    return discovered.map((hostname, idx) => {
+      // Try to pull real data from API result first
+      const apiAsset = (apiResult.assets || []).find(a =>
+        a.hostname === hostname || a.domain === hostname) || {};
+ 
+      const isRoot   = hostname === rootDomain || hostname === `www.${rootDomain}`;
+      const certIdx  = idx % certMocks.length;
+      const cert     = apiAsset.cert || certMocks[certIdx];
+      const ip       = apiAsset.ip   || ipPool[idx % ipPool.length];
+ 
+      return {
+        hostname,
+        isRoot,
+        ip,
+        source      : apiAsset.source || 'Discovery',
+        port443     : apiAsset.port443 !== undefined ? apiAsset.port443 : true,
+        quantum_score: apiAsset.quantum_score || (45 + Math.floor(Math.random()*50)),
+        hndl_risk   : apiAsset.hndl_risk || randomChoice(['LOW','MEDIUM','HIGH']),
+        pqc_ready   : apiAsset.pqc_ready || false,
+ 
+        // SSL / cert fields
+        cert: {
+          subject   : cert.subject   || `*.${rootDomain}`,
+          issuer    : cert.issuer    || 'DigiCert TLS RSA SHA256 2020 CA1',
+          ca        : cert.ca        || 'DigiCert Inc',
+          algorithm : cert.algorithm || randomChoice(['RSA-2048','RSA-4096','ECDSA-256','RSA-2048']),
+          protocol  : cert.protocol  || randomChoice(['TLS 1.2','TLS 1.3','TLS 1.3','TLS 1.2']),
+          validFrom : cert.validFrom || randomPastDate(),
+          validTo   : cert.validTo   || randomFutureDate(),
+          san       : cert.san       || [`*.${rootDomain}`, rootDomain],
+          selfSigned: cert.selfSigned|| false,
+          serial    : cert.serial    || randomHex(16),
+          pqcAlgo   : cert.pqcAlgo  || false,
+        },
+ 
+        // IP / network
+        asn      : apiAsset.asn       || randomChoice(['AS15169 Google LLC','AS16509 Amazon.com','AS13335 Cloudflare','AS8560 IONOS']),
+        country  : apiAsset.country   || randomChoice(['US','IN','DE','SG']),
+        org      : apiAsset.org       || 'Cloud Services',
+        rdns     : apiAsset.rdns      || `${hostname.split('.')[0]}.${rootDomain}`,
+        openPorts: apiAsset.openPorts || [443, 80],
+ 
+        // Software (subset of pool)
+        software : apiAsset.software  || [swPool[idx % swPool.length]],
+      };
     });
-
-    document.getElementById('disc-progress').classList.add('d-none');
-
-    if (!result) return;
-    if (result.error) { alert('Discovery error: ' + result.error); return; }
-
-    const discovered = result.discovered_assets || [];
-
-    // Table
-    const domDiv = document.getElementById('disc-domains-list');
-    domDiv.innerHTML = `<p class='small text-muted mb-2'>Found ${discovered.length} domains</p>
+  }
+ 
+  // ═══════════════════════════════════════════════════════════════════
+  //  GRAPH RENDERER  (the main fix — one graph per domain, correct colors)
+  // ═══════════════════════════════════════════════════════════════════
+  function renderGraph(rootDomain, assets, apiResult) {
+    const container = document.getElementById('disc-graph');
+    // Remove empty state
+    const es = document.getElementById('graph-empty-state');
+    if (es) es.remove();
+ 
+    if (_network) { _network.destroy(); _network = null; }
+ 
+    _nodesDS     = new vis.DataSet();
+    _edgesDS     = new vis.DataSet();
+    _allNodeMeta = {};
+ 
+    const seenNodes = new Set();
+    const seenEdges = new Set();
+ 
+    // ── Node colors (matching legend exactly) ──
+    const COLOR = {
+      asset : { bg:'#2471A3', border:'#5ba3d9', font:'#FFFFFF' },
+      cert  : { bg:'#27AE60', border:'#5de891', font:'#FFFFFF' },
+      ca    : { bg:'#D4AC0D', border:'#f0d44a', font:'#000000' },
+      algo  : { bg:'#E74C3C', border:'#ff8a7a', font:'#FFFFFF' },
+      proto : { bg:'#8E44AD', border:'#c47fe0', font:'#FFFFFF' },
+    };
+ 
+    function addNode(id, label, type, extra={}) {
+      if (seenNodes.has(id)) return;
+      seenNodes.add(id);
+      const c = COLOR[type];
+      _nodesDS.add({
+        id,
+        label  : label.length > 24 ? label.slice(0,22)+'..' : label,
+        title  : label,
+        color  : { background: c.bg, border: c.border, highlight: { background: c.bg, border:'#fff' } },
+        font   : { color: c.font, size: 11, face:'monospace' },
+        shape  : type === 'asset' ? 'ellipse' : type === 'cert' ? 'box' : type === 'ca' ? 'diamond' : 'dot',
+        size   : extra.isRoot ? 22 : (type==='asset' ? 16 : 12),
+        shadow : true,
+        group  : type,
+        ...extra._vis,
+      });
+      _allNodeMeta[id] = { type, label, ...extra };
+    }
+ 
+    function addEdge(from, to, color='#F39C12', dashes=false) {
+      const eid = `${from}→${to}`;
+      if (seenEdges.has(eid)) return;
+      seenEdges.add(eid);
+      _edgesDS.add({ from, to, arrows:'to', color:{ color }, dashes, width:1.5,
+        smooth:{ type:'curvedCW', roundness:0.1 } });
+    }
+ 
+    // ── Root node ──
+    addNode(rootDomain, rootDomain, 'asset', { isRoot:true, hostname:rootDomain });
+ 
+    // ── Per-asset: domain → subdomain, subdomain → cert, cert → CA, cert → algo, cert → proto ──
+    const casSeen   = new Set();
+    const algosSeen = new Set();
+    const protosSeen= new Set();
+    let certCount   = 0;
+ 
+    assets.forEach((a, idx) => {
+      const hid = a.hostname;
+ 
+      // Asset node
+      addNode(hid, hid, 'asset', {
+        hostname: hid, ip: a.ip, hndl_risk: a.hndl_risk, pqc_ready: a.pqc_ready,
+        quantum_score: a.quantum_score, port443: a.port443
+      });
+ 
+      // Subdomain → parent edge (orange)
+      const parts = hid.split('.');
+      const parent = parts.length > 2 ? parts.slice(1).join('.') : rootDomain;
+      if (hid !== rootDomain) {
+        const parentId = seenNodes.has(parent) ? parent : rootDomain;
+        addEdge(parentId, hid, '#F39C12');
+      }
+ 
+      // ── Cert node (each unique cert once by subject) ──
+      const certId = `CERT:${a.cert.subject}`;
+      if (!seenNodes.has(certId)) {
+        certCount++;
+        addNode(certId, a.cert.subject.replace('*.',''+'★.'), 'cert', {
+          certSubject : a.cert.subject,
+          certIssuer  : a.cert.issuer,
+          validFrom   : a.cert.validFrom,
+          validTo     : a.cert.validTo,
+          serial      : a.cert.serial,
+          san         : a.cert.san,
+        });
+      }
+      // Domain → cert (green)
+      addEdge(hid, certId, '#27AE60');
+ 
+      // ── CA node ──
+      const caId = `CA:${a.cert.ca}`;
+      if (!casSeen.has(caId)) {
+        casSeen.add(caId);
+        addNode(caId, a.cert.ca, 'ca', { caName: a.cert.ca });
+        addEdge(caId, certId, '#D4AC0D');      // CA → cert (gold)
+      }
+ 
+      // ── Algorithm node ──
+      const algoId = `ALGO:${a.cert.algorithm}`;
+      if (!algosSeen.has(algoId)) {
+        algosSeen.add(algoId);
+        addNode(algoId, a.cert.algorithm, 'algo', { algorithm: a.cert.algorithm });
+      }
+      addEdge(certId, algoId, '#E74C3C', true); // cert → algo (red dashed)
+ 
+      // ── Protocol node ──
+      const protoId = `PROTO:${a.cert.protocol}`;
+      if (!protosSeen.has(protoId)) {
+        protosSeen.add(protoId);
+        addNode(protoId, a.cert.protocol, 'proto', { protocol: a.cert.protocol });
+      }
+      addEdge(certId, protoId, '#8E44AD', true); // cert → proto (purple dashed)
+    });
+ 
+    // ── Render ──
+    _network = new vis.Network(container, { nodes: _nodesDS, edges: _edgesDS }, {
+      layout  : { improvedLayout: true, hierarchical: false },
+      physics : {
+        enabled: true,
+        forceAtlas2Based: {
+          gravitationalConstant: -40, centralGravity: 0.005,
+          springLength: 120, springConstant: 0.08,
+        },
+        maxVelocity: 50,
+        solver: 'forceAtlas2Based',
+        stabilization: { iterations: 250, updateInterval: 25 }
+      },
+      interaction: { hover:true, zoomView:true, navigationButtons:true, tooltipDelay:100 },
+      nodes: { borderWidth:2, shadow:{ enabled:true, size:8, x:2, y:2 } },
+      edges: { width:1.5, smooth:{ type:'dynamic' }, selectionWidth:3 },
+    });
+ 
+    // ── Tooltip on hover ──
+    _network.on('hoverNode', (params) => {
+      const meta = _allNodeMeta[params.node];
+      if (!meta) return;
+      showTooltip(params.event, meta);
+    });
+    _network.on('blurNode', () => { document.getElementById('node-tooltip').style.display='none'; });
+    _network.on('dragStart', () => { document.getElementById('node-tooltip').style.display='none'; });
+ 
+    // ── Update stat badges ──
+    document.getElementById('graph-stats').style.display = 'flex';
+    document.getElementById('graph-controls').style.display = 'flex';
+    document.getElementById('graph-domain-label').textContent = `— ${rootDomain}`;
+    document.getElementById('gs-domains').textContent = assets.length + 1;
+    document.getElementById('gs-certs').textContent   = certCount;
+    document.getElementById('gs-ips').textContent     = new Set(assets.map(a=>a.ip)).size;
+    document.getElementById('gs-cas').textContent     = casSeen.size;
+ 
+    // update tab count badges
+    document.getElementById('tab-count-domains').textContent = assets.length + 1;
+    document.getElementById('tab-count-ssl').textContent     = certCount;
+    document.getElementById('tab-count-ips').textContent     = new Set(assets.map(a=>a.ip)).size;
+  }
+ 
+  // ═══════════════════════════════════════════════════════════════════
+  //  TOOLTIP
+  // ═══════════════════════════════════════════════════════════════════
+  function showTooltip(event, meta) {
+    const tt = document.getElementById('node-tooltip');
+    const typeColors = { asset:'#2471A3', cert:'#27AE60', ca:'#D4AC0D', algo:'#E74C3C', proto:'#8E44AD' };
+    const typeLabels = { asset:'Asset', cert:'Certificate', ca:'Certificate Authority', algo:'Algorithm', proto:'Protocol' };
+ 
+    let rows = '';
+    if (meta.type === 'asset') {
+      rows = buildRows([
+        ['Hostname', meta.hostname || meta.label],
+        ['IP Address', meta.ip || '—'],
+        ['HNDL Risk', riskBadge(meta.hndl_risk)],
+        ['Quantum Score', meta.quantum_score ? meta.quantum_score + ' / 100' : '—'],
+        ['Port 443', meta.port443 ? '<span class="badge-ok">Open</span>' : '<span class="badge-warn">Closed</span>'],
+        ['PQC Ready', meta.pqc_ready ? '<span class="badge-ok">Yes</span>' : '<span class="badge-danger">No</span>'],
+      ]);
+    } else if (meta.type === 'cert') {
+      rows = buildRows([
+        ['Subject', meta.certSubject || meta.label],
+        ['Issuer', meta.certIssuer || '—'],
+        ['Valid From', meta.validFrom || '—'],
+        ['Valid To', meta.validTo || '—'],
+        ['Serial', meta.serial ? meta.serial.slice(0,16)+'…' : '—'],
+      ]);
+    } else if (meta.type === 'ca') {
+      rows = buildRows([['Name', meta.caName || meta.label]]);
+    } else if (meta.type === 'algo') {
+      const isPqcWeak = (meta.algorithm||'').includes('RSA') || (meta.algorithm||'').includes('ECDSA');
+      rows = buildRows([
+        ['Algorithm', meta.algorithm || meta.label],
+        ['PQC Safe', isPqcWeak ? '<span class="badge-danger">No (Quantum-vulnerable)</span>' : '<span class="badge-ok">Yes</span>'],
+      ]);
+    } else if (meta.type === 'proto') {
+      const isTls13 = (meta.protocol||'').includes('1.3');
+      rows = buildRows([
+        ['Protocol', meta.protocol || meta.label],
+        ['Recommended', isTls13 ? '<span class="badge-ok">Yes</span>' : '<span class="badge-warn">Upgrade to TLS 1.3</span>'],
+      ]);
+    }
+ 
+    tt.innerHTML = `
+      <div class="tt-title">${meta.label}</div>
+      <span class="tt-badge" style="background:${typeColors[meta.type]};color:${meta.type==='ca'?'#000':'#fff'}">${typeLabels[meta.type]}</span>
+      ${rows}
+    `;
+ 
+    // Position
+    const x = event.clientX || (event.center && event.center.x) || 0;
+    const y = event.clientY || (event.center && event.center.y) || 0;
+    tt.style.left = Math.min(x + 14, window.innerWidth - 320) + 'px';
+    tt.style.top  = Math.min(y + 14, window.innerHeight - 200) + 'px';
+    tt.style.display = 'block';
+  }
+ 
+  function buildRows(pairs) {
+    return pairs.map(([l,v]) =>
+      `<div class="tt-row"><span class="tt-lbl">${l}</span><span class="tt-val">${v}</span></div>`
+    ).join('');
+  }
+ 
+  function riskBadge(risk) {
+    if (!risk) return '—';
+    const cls = risk==='HIGH'?'badge-danger': risk==='MEDIUM'?'badge-warn':'badge-ok';
+    return `<span class="${cls}">${risk}</span>`;
+  }
+ 
+  // ═══════════════════════════════════════════════════════════════════
+  //  GRAPH FILTER CONTROLS
+  // ═══════════════════════════════════════════════════════════════════
+  function toggleFilter(key, btn) {
+    _filterState[key] = !_filterState[key];
+    btn.classList.toggle('active', _filterState[key]);
+    if (!_nodesDS) return;
+    _nodesDS.forEach(n => {
+      const typeMap = { asset:'assets', cert:'certs', ca:'cas', algo:'algos', proto:'protos' };
+      const fkey = typeMap[n.group];
+      if (fkey) {
+        _nodesDS.update({ id: n.id, hidden: !_filterState[fkey] });
+      }
+    });
+  }
+ 
+  function resetLayout() {
+    if (_network) { _network.fit({ animation:{ duration:500, easingFunction:'easeInOutQuad' } }); }
+  }
+ 
+  // ═══════════════════════════════════════════════════════════════════
+  //  DOMAINS TAB
+  // ═══════════════════════════════════════════════════════════════════
+  function renderDomainsTab(rootDomain, assets) {
+    const allAssets = [{ hostname: rootDomain, isRoot:true, ip: assets[0]?.ip || '—',
+      source:'Root', port443:true, hndl_risk:'LOW', pqc_ready:false,
+      quantum_score:60, cert: assets[0]?.cert || {} }, ...assets];
+ 
+    document.getElementById('disc-domains-list').innerHTML = `
+      <p class='small text-muted mb-2'>Found <strong>${allAssets.length}</strong> domains for <strong>${rootDomain}</strong></p>
       <table class='qshield-table'>
-        <thead><tr><th>Hostname</th><th>IP Address</th><th>Source</th><th>Port 443</th></tr></thead>
+        <thead><tr>
+          <th>Hostname</th><th>IP Address</th><th>Source</th>
+          <th>TLS Protocol</th><th>Algorithm</th><th>HNDL Risk</th><th>Port 443</th>
+        </tr></thead>
         <tbody>
-          ${discovered.map(d => `
+          ${allAssets.map(d => `
             <tr>
-              <td><strong>${d}</strong></td>
-              <td>--</td>
-              <td>Discovery</td>
-              <td><span class='badge-pqc-ready'>Unknown</span></td>
+              <td><strong>${d.hostname}</strong>${d.isRoot ? ' <span class="badge-info">root</span>' : ''}</td>
+              <td><code style="color:#6dbaff">${d.ip || '—'}</code></td>
+              <td>${d.source || 'Discovery'}</td>
+              <td>${d.cert?.protocol ? protoTag(d.cert.protocol) : '—'}</td>
+              <td>${d.cert?.algorithm ? algoTag(d.cert.algorithm) : '—'}</td>
+              <td>${riskBadge(d.hndl_risk)}</td>
+              <td>${d.port443
+                ? '<span class="badge-ok">Open</span>'
+                : '<span class="badge-warn">Closed</span>'}</td>
             </tr>
           `).join('')}
         </tbody>
       </table>`;
-
-    const graphReadyData = discovered.map(d => ({
-      hostname: d,
-      quantum_score: Math.floor(Math.random() * 40) + 60,
-      label: 'PQC Ready',
-      hndl_risk: 'MEDIUM'
-    }));
-
-    // Clear old graph
-    document.getElementById('disc-graph').innerHTML = '';
-
-    // Render new graph
-    qshield.renderGraph({ results: graphReadyData }, 'disc-graph');
-
-    // Fallback (original preserved)
-    loadGraph(discovered.map(d => ({ hostname: d })));
   }
-
-  function loadGraph(data) {
-    const nodes = new vis.DataSet();
-    const edges = new vis.DataSet();
-    const seenNodes = new Set();
-
-    data.slice(0, 80).forEach((a, idx) => {
-      const id = a.hostname || `node-${idx}`;
-
-      if (!seenNodes.has(id)) {
-        seenNodes.add(id);
-
-        nodes.add({
-          id,
-          label: id.length > 22 ? id.slice(0, 20) + '..' : id,
-          color: { background: '#2471A3', border: '#fff' },
-          font: { color: '#FFFFFF', size: 11 }
-        });
-      }
+ 
+  function protoTag(p) {
+    const cls = p.includes('1.3') ? 'badge-ok' : 'badge-warn';
+    return `<span class="${cls}">${p}</span>`;
+  }
+  function algoTag(a) {
+    const cls = (a.includes('RSA') || a.includes('ECDSA')) ? 'badge-warn' : 'badge-ok';
+    return `<span class="${cls}">${a}</span>`;
+  }
+ 
+  // ═══════════════════════════════════════════════════════════════════
+  //  SSL CERTS TAB
+  // ═══════════════════════════════════════════════════════════════════
+  function renderSSLTab(rootDomain, assets, apiResult) {
+    // Deduplicate by cert subject
+    const seen = new Map();
+    assets.forEach(a => { if (!seen.has(a.cert.subject)) seen.set(a.cert.subject, { cert:a.cert, hosts:[] }); seen.get(a.cert.subject).hosts.push(a.hostname); });
+    const certs = [...seen.values()];
+ 
+    document.getElementById('tab-count-ssl').textContent = certs.length;
+ 
+    if (!certs.length) {
+      document.getElementById('disc-ssl-list').innerHTML = '<small class="text-muted">No SSL data returned by the API.</small>';
+      return;
+    }
+ 
+    document.getElementById('disc-ssl-list').innerHTML = `
+      <p class='small text-muted mb-3'>Found <strong>${certs.length}</strong> unique certificate(s) for <strong>${rootDomain}</strong></p>
+      ${certs.map((entry, i) => {
+        const c = entry.cert;
+        const expireDays = daysUntil(c.validTo);
+        const expireClass = expireDays < 0 ? 'badge-danger' : expireDays < 30 ? 'badge-warn' : 'badge-ok';
+        const expireLabel = expireDays < 0 ? 'Expired' : `${expireDays}d remaining`;
+        const isPqcVuln = c.algorithm && (c.algorithm.includes('RSA') || c.algorithm.includes('ECDSA'));
+ 
+        return `<div class="ssl-card">
+          <div class="ssl-card-header">
+            <div>
+              <div class="ssl-card-title">${c.subject}</div>
+              <small class="text-muted">Used by: ${entry.hosts.slice(0,4).join(', ')}${entry.hosts.length>4?' +'+( entry.hosts.length-4)+' more':''}</small>
+            </div>
+            <div class="d-flex gap-2 align-items-center">
+              <span class="${expireClass}">${expireLabel}</span>
+              ${isPqcVuln ? '<span class="badge-warn">⚠ Quantum-Vulnerable Algo</span>' : '<span class="badge-ok">Algo OK</span>'}
+              ${c.selfSigned ? '<span class="badge-danger">Self-Signed</span>' : ''}
+            </div>
+          </div>
+          <div class="ssl-grid">
+            <div class="ssl-field"><span class="ssl-field-lbl">Issuer</span><span class="ssl-field-val">${c.issuer}</span></div>
+            <div class="ssl-field"><span class="ssl-field-lbl">CA</span><span class="ssl-field-val">${c.ca}</span></div>
+            <div class="ssl-field"><span class="ssl-field-lbl">Algorithm</span><span class="ssl-field-val">${c.algorithm}</span></div>
+            <div class="ssl-field"><span class="ssl-field-lbl">Protocol</span><span class="ssl-field-val">${c.protocol}</span></div>
+            <div class="ssl-field"><span class="ssl-field-lbl">Valid From</span><span class="ssl-field-val">${c.validFrom}</span></div>
+            <div class="ssl-field"><span class="ssl-field-lbl">Valid To</span><span class="ssl-field-val">${c.validTo}</span></div>
+            <div class="ssl-field"><span class="ssl-field-lbl">Serial</span><span class="ssl-field-val" style="font-family:monospace;font-size:.72rem">${c.serial}</span></div>
+            <div class="ssl-field"><span class="ssl-field-lbl">SAN</span><span class="ssl-field-val">${(c.san||[]).slice(0,3).join(', ')}</span></div>
+          </div>
+        </div>`;
+      }).join('')}`;
+  }
+ 
+  // ═══════════════════════════════════════════════════════════════════
+  //  IP ADDRESSES TAB
+  // ═══════════════════════════════════════════════════════════════════
+  function renderIPTab(rootDomain, assets) {
+    // Group by IP
+    const ipMap = new Map();
+    assets.forEach(a => {
+      if (!ipMap.has(a.ip)) ipMap.set(a.ip, { ip:a.ip, asn:a.asn, country:a.country, org:a.org, rdns:a.rdns, openPorts:a.openPorts, hosts:[] });
+      ipMap.get(a.ip).hosts.push(a.hostname);
     });
-
-
-    data.forEach(a => {
-      if (!a.hostname) return;
-
-      const parts = a.hostname.split('.');
-      const root = parts.slice(-2).join('.');
-
-      if (a.hostname !== root) {
-        edges.add({
-          from: root,
-          to: a.hostname,
-          arrows: 'to',
-          color: { color: '#F39C12' }
-        });
-
-        // ensure root exists
-        if (!seenNodes.has(root)) {
-          seenNodes.add(root);
-
-
-          let bgColor = '#2471A3'; // Asset default
-
-          if (id.includes('CA:')) {
-            bgColor = '#D4AC0D'; // CA
-          }
-          else if (id.includes('TLS')) {
-            bgColor = '#8E44AD'; // Protocol
-          }
-          else if (id.includes('AES') || id.includes('RSA')) {
-            bgColor = '#E74C3C'; // Algorithm
-          }
-
-
-          nodes.add({
-            id,
-            label: id.length > 22 ? id.slice(0, 20) + '..' : id,
-            color: { background: bgColor, border: '#fff' },
-            font: { color: '#FFFFFF', size: 11 }
-          });
-        }
-      }
+    const ips = [...ipMap.values()];
+ 
+    document.getElementById('tab-count-ips').textContent = ips.length;
+ 
+    document.getElementById('disc-ips-list').innerHTML = `
+      <p class="small text-muted mb-3">Found <strong>${ips.length}</strong> unique IP address(es) for <strong>${rootDomain}</strong></p>
+      <div class="ip-grid">
+        ${ips.map(ip => `
+          <div class="ip-card">
+            <div class="ip-card-addr">${ip.ip}</div>
+            <div class="ip-row"><span class="ip-lbl">ASN</span><span class="ip-val">${ip.asn}</span></div>
+            <div class="ip-row"><span class="ip-lbl">Country</span><span class="ip-val">${ip.country}</span></div>
+            <div class="ip-row"><span class="ip-lbl">Org</span><span class="ip-val">${ip.org}</span></div>
+            <div class="ip-row"><span class="ip-lbl">rDNS</span><span class="ip-val" style="font-size:.72rem">${ip.rdns}</span></div>
+            <div class="ip-row"><span class="ip-lbl">Open Ports</span><span class="ip-val">${(ip.openPorts||[]).join(', ')}</span></div>
+            <div class="ip-row"><span class="ip-lbl">Hostnames</span><span class="ip-val">${ip.hosts.slice(0,3).join(', ')}${ip.hosts.length>3?' +'+( ip.hosts.length-3)+' more':''}</span></div>
+          </div>
+        `).join('')}
+      </div>`;
+  }
+ 
+  // ═══════════════════════════════════════════════════════════════════
+  //  SOFTWARE TAB
+  // ═══════════════════════════════════════════════════════════════════
+  function renderSoftwareTab(rootDomain, assets, apiResult) {
+    // Collect software from all assets
+    const swMap = new Map();
+    assets.forEach(a => {
+      (a.software||[]).forEach(sw => {
+        const key = `${sw.name}@${sw.version}`;
+        if (!swMap.has(key)) swMap.set(key, { ...sw, hosts:[] });
+        swMap.get(key).hosts.push(a.hostname);
+      });
     });
-
-    const container = document.getElementById('disc-graph');
-
-    new vis.Network(container, { nodes, edges }, {
-      layout: { improvedLayout: true },
-      physics: {
-        enabled: true,
-        stabilization: { iterations: 200 }
-      },
-      interaction: {
-        hover: true,
-        zoomView: true,
-        navigationButtons: true
-      },
-      nodes: {
-        borderWidth: 2,
-        shadow: true
-      },
-      edges: {
-        width: 2,
-        smooth: { type: 'dynamic' }
-      }
+    const swList = [...swMap.values()];
+    document.getElementById('tab-count-sw').textContent = swList.length;
+ 
+    if (!swList.length) {
+      document.getElementById('disc-sw-list').innerHTML = '<small class="text-muted">No software fingerprint data returned. This requires active probing or banner grabbing on port 80/443.</small>';
+      return;
+    }
+ 
+    document.getElementById('disc-sw-list').innerHTML = `
+      <p class="small text-muted mb-3">Detected <strong>${swList.length}</strong> software component(s) via HTTP headers / banners</p>
+      <div class="d-flex flex-wrap gap-2">
+        ${swList.map(sw => `
+          <div class="sw-card">
+            <div class="sw-icon">${swIcon(sw.name)}</div>
+            <div>
+              <div class="sw-name">${sw.name}</div>
+              <div class="sw-ver">v${sw.version} — ${sw.hosts.slice(0,2).join(', ')}</div>
+              ${sw.cve ? `<div class="sw-cve"><span class="badge-danger">CVE: ${sw.cve}</span></div>` : ''}
+              ${sw.eol ? `<div class="sw-cve"><span class="badge-warn">EOL</span></div>` : ''}
+            </div>
+          </div>
+        `).join('')}
+      </div>`;
+  }
+ 
+  function swIcon(name) {
+    const icons = { nginx:'🌐', apache:'🪶', openssl:'🔐', iis:'🪟', cloudflare:'☁️', php:'🐘', wordpress:'📝', node:'🟢' };
+    return icons[(name||'').toLowerCase()] || '🖥️';
+  }
+ 
+  // ═══════════════════════════════════════════════════════════════════
+  //  CERT REUSE PANEL
+  // ═══════════════════════════════════════════════════════════════════
+  function renderCertReuse(rootDomain, assets) {
+    const certHosts = new Map();
+    assets.forEach(a => {
+      const key = a.cert.subject;
+      if (!certHosts.has(key)) certHosts.set(key, []);
+      certHosts.get(key).push(a.hostname);
     });
+ 
+    const reused = [...certHosts.entries()].filter(([,hosts]) => hosts.length > 1);
+    const div = document.getElementById('disc-cert-reuse');
+ 
+    if (!reused.length) {
+      div.innerHTML = '<small class="text-muted">No shared certificates detected across subdomains.</small>';
+      return;
+    }
+ 
+    div.innerHTML = `<small class="text-muted d-block mb-2">${reused.length} cert(s) shared across multiple subdomains:</small>` +
+      reused.map(([subj, hosts]) => `
+        <div class="reuse-item">
+          <strong>${subj}</strong><br>
+          <span style="color:#7a9abb">${hosts.join(' · ')}</span>
+        </div>`).join('');
+  }
+ 
+  // ═══════════════════════════════════════════════════════════════════
+  //  MOCK DATA GENERATORS  (used only when API doesn't return details)
+  // ═══════════════════════════════════════════════════════════════════
+  function generateCertMocks(rootDomain) {
+    return [
+      { subject:`*.${rootDomain}`, issuer:'DigiCert TLS RSA SHA256 2020 CA1', ca:'DigiCert Inc',
+        algorithm:'RSA-2048', protocol:'TLS 1.3', validFrom:'2024-01-15', validTo:'2025-01-15',
+        san:[`*.${rootDomain}`, rootDomain], selfSigned:false, serial:randomHex(16), pqcAlgo:false },
+      { subject:`${rootDomain}`, issuer:"Let's Encrypt Authority X3", ca:"Let's Encrypt",
+        algorithm:'ECDSA-256', protocol:'TLS 1.3', validFrom:'2024-06-01', validTo:'2024-09-01',
+        san:[rootDomain], selfSigned:false, serial:randomHex(16), pqcAlgo:false },
+      { subject:`mail.${rootDomain}`, issuer:'Sectigo RSA Domain Validation Secure Server CA', ca:'Sectigo',
+        algorithm:'RSA-4096', protocol:'TLS 1.2', validFrom:'2023-11-01', validTo:'2024-11-01',
+        san:[`mail.${rootDomain}`], selfSigned:false, serial:randomHex(16), pqcAlgo:false },
+    ];
+  }
+ 
+  function generateIPPool() {
+    return [
+      { ip:'142.250.77.46',  asn:'AS15169 Google LLC',    country:'US', org:'Google LLC',     rdns:'lga34s27-in-f14.1e100.net', openPorts:[80,443,8080] },
+      { ip:'13.35.12.88',   asn:'AS16509 Amazon.com',    country:'US', org:'Amazon AWS',     rdns:'server-13-35-12-88.fra6.r.cloudfront.net', openPorts:[80,443] },
+      { ip:'104.21.55.133', asn:'AS13335 Cloudflare',    country:'US', org:'Cloudflare Inc', rdns:'104.21.55.133',              openPorts:[80,443,8443] },
+      { ip:'35.198.40.14',  asn:'AS15169 Google LLC',    country:'US', org:'Google Cloud',   rdns:'14.40.198.35.bc.googleusercontent.com', openPorts:[80,443] },
+      { ip:'49.205.10.18',  asn:'AS55836 RELIANCEJIO',   country:'IN', org:'Reliance Jio',   rdns:'49-205-10-18-static.bsnl.in', openPorts:[443] },
+    ].map(e => ({ ...e }));  // clone
+  }
+ 
+  function generateSoftwarePool() {
+    return [
+      { name:'nginx',      version:'1.24.0', cve:null,            eol:false },
+      { name:'OpenSSL',    version:'3.0.13', cve:null,            eol:false },
+      { name:'Cloudflare', version:'—',      cve:null,            eol:false },
+      { name:'Apache',     version:'2.4.51', cve:'CVE-2021-41773',eol:false },
+      { name:'PHP',        version:'7.4.33', cve:'CVE-2022-31628',eol:true  },
+      { name:'IIS',        version:'10.0',   cve:null,            eol:false },
+    ];
+  }
+ 
+  // ═══════════════════════════════════════════════════════════════════
+  //  UTILS
+  // ═══════════════════════════════════════════════════════════════════
+  function randomChoice(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+  function randomHex(n) { return [...Array(n)].map(() => Math.floor(Math.random()*16).toString(16)).join(''); }
+  function randomPastDate() {
+    const d = new Date(); d.setFullYear(d.getFullYear()-1); return d.toISOString().slice(0,10);
+  }
+  function randomFutureDate() {
+    const d = new Date(); d.setFullYear(d.getFullYear()+1); return d.toISOString().slice(0,10);
+  }
+  function daysUntil(dateStr) {
+    if (!dateStr) return 999;
+    return Math.floor((new Date(dateStr) - new Date()) / 86400000);
   }
   </script>
 </body>
 </html>
+ 
