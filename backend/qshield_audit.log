@@ -501,3 +501,39 @@ paragraph text '<para><font color="#xf39c1">PQC Ready</font></para>' caused exce
 2026-03-30 14:29:30,228 INFO: AUDIT | user=root | EXPORT | target= | PDF Report
 2026-03-30 15:26:19,318 WARNING: Method Not Allowed (GET): /api/login/
 2026-03-30 15:26:19,322 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 15:27:19,318 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 15:27:19,319 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 15:47:28,774 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 15:47:28,775 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 15:48:28,775 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 15:48:28,775 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 15:49:28,774 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 15:49:28,775 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 15:50:28,773 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 15:50:28,773 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 15:51:28,770 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 15:51:28,770 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 15:52:28,774 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 15:52:28,775 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 15:53:19,909 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 15:53:19,909 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 15:53:21,602 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 15:53:21,612 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 15:53:21,613 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-30 15:53:28,162 INFO: AUDIT | user=anonymous | LOGIN_FAILED | target=root | 
+2026-03-30 15:53:28,162 WARNING: Unauthorized: /api/login/
+2026-03-30 15:53:35,509 INFO: AUDIT | user=root | LOGIN | target= | Role: admin
+2026-03-30 15:53:45,586 INFO: AUDIT | user=root | SCAN | target=google.com | Score:75.5 Label:PQC Ready
+2026-03-30 15:53:54,538 INFO: AUDIT | user=root | SCAN | target=github.com | Score:78 Label:PQC Ready
+2026-03-30 15:54:23,724 INFO: AUDIT | user=root | DISCOVER | target=github.com | 10 assets discovered
+2026-03-30 15:54:37,373 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-30 16:00:41,717 INFO: AUDIT | user=root | EXPORT | target= | PDF Report
+2026-03-30 16:04:18,674 INFO: AUDIT | user=root | SCAN | target=cloudflare.com | Score:78 Label:PQC Ready
+2026-03-30 16:04:36,561 INFO: AUDIT | user=root | DISCOVER | target=cloudflare.com | 10 assets discovered
+2026-03-30 16:05:56,262 INFO: AUDIT | user=root | SCAN | target=yahoo.com | Score:77.5 Label:PQC Ready
+2026-03-30 16:06:30,726 INFO: AUDIT | user=root | SCAN | target=neverssl.com | Score:84.5 Label:PQC Ready
+2026-03-30 16:13:55,618 INFO: AUDIT | user=root | EXPORT | target= | PDF Report
+2026-03-30 16:14:13,912 INFO: AUDIT | user=root | EXPORT | target= | PDF Report
+2026-03-30 16:23:04,080 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-30 16:27:42,843 INFO: /Users/harshu/Desktop/q-shield-pnb/backend/reporting/pdf_report.py changed, reloading.
+2026-03-30 16:28:34,322 INFO: AUDIT | user=root | EXPORT | target= | PDF Report

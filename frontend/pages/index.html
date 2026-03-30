@@ -12,10 +12,8 @@
   <script src='../static/js/qshield.js'></script>
 </head>
 <body>
-  <!-- Layout injected by qshield.renderLayout('home') -->
   <div id='app-layout'></div>
- 
-  <!-- Page content rendered inside layout by JS -->
+
   <div id='page-content' style='display:none'>
     <div class='row g-3 mb-4'>
       <div class='col'><div class='stat-card gold'>
@@ -35,19 +33,23 @@
         <div class='stat-number' id='s-score'>--/1000</div>
       </div></div>
     </div>
+
     <div class='row g-3 mb-4'>
       <div class='col-md-3'><div class='stat-card'>
         <div class='fw-bold mb-2 small text-muted text-uppercase'>Asset Risk Distribution</div>
         <canvas id='riskChart' height='200'></canvas>
       </div></div>
+
       <div class='col-md-3'><div class='stat-card'>
         <div class='fw-bold mb-2 small text-muted text-uppercase'>Application Status</div>
         <canvas id='statusPie' height='200'></canvas>
       </div></div>
+
       <div class='col-md-3'><div class='stat-card'>
         <div class='fw-bold mb-2 small text-muted text-uppercase'>Cert Expiry Timeline</div>
         <canvas id='certExpiry' height='200'></canvas>
       </div></div>
+
       <div class='col-md-3'><div class='stat-card'>
         <div class='fw-bold mb-2 small text-muted text-uppercase'>Quick Scan</div>
         <input type='text' id='scanInput' class='form-control form-control-sm mb-2' placeholder='Enter URL or domain...'>
@@ -59,6 +61,7 @@
         <div id='scan-result' class='mt-2'></div>
       </div></div>
     </div>
+
     <div class='stat-card'>
       <div class='d-flex justify-content-between align-items-center mb-3'>
         <span class='fw-bold'>Asset Inventory</span>
@@ -69,6 +72,7 @@
           <a href='#' onclick="window.location.href=qshield.API_BASE+'/api/export/pdf/'" class='btn btn-sm btn-outline-dark'>Export PDF</a>
         </div>
       </div>
+
       <div class='table-responsive'>
         <table class='qshield-table'>
           <thead><tr>
@@ -81,7 +85,7 @@
       </div>
     </div>
   </div>
- 
+
   <script>
 
     let riskChartInstance = null;
@@ -95,7 +99,7 @@
     });
 
     async function loadHome() {
-      
+
       const [summary, results] = await Promise.all([
         qshield.api('/api/summary/'), qshield.api('/api/results/')
       ]);
@@ -107,10 +111,7 @@
 
       const lc = summary.label_counts||{};
 
-
-      if (riskChartInstance) {
-        riskChartInstance.destroy();
-      }
+      if (riskChartInstance) riskChartInstance.destroy();
 
       riskChartInstance = new Chart(document.getElementById('riskChart'),{
         type:'bar',
@@ -126,16 +127,10 @@
             backgroundColor:['#1C2833','#E74C3C','#F39C12','#27AE60']
           }]
         },
-        options:{
-          plugins:{legend:{display:false}},
-          scales:{y:{beginAtZero:true}}
-        }
+        options:{ plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }
       });
 
-
-      if (statusPieInstance) {
-        statusPieInstance.destroy();
-      }
+      if (statusPieInstance) statusPieInstance.destroy();
 
       statusPieInstance = new Chart(document.getElementById('statusPie'),{
         type:'pie',
@@ -151,14 +146,7 @@
             backgroundColor:['#27AE60','#9B59B6','#F39C12','#E74C3C']
           }]
         },
-        options:{
-          plugins:{
-            legend:{
-              position:'bottom',
-              labels:{font:{size:10}}
-            }
-          }
-        }
+        options:{ plugins:{legend:{position:'bottom',labels:{font:{size:10}}}} }
       });
 
       const tbody = document.getElementById('asset-tbody');
@@ -182,6 +170,7 @@
       }).join('');
 
 
+
       const expiryBuckets = {
         'Expired': 0,
         '0-7 days': 0,
@@ -190,9 +179,16 @@
       };
 
       (results || []).forEach(r => {
-        const days = r.cert_days_remaining;
+        let days = r.cert_days_remaining;
 
-        if (days === null || days === undefined) return;
+        // 🔥 fallback calculation
+        if ((days === null || days === undefined) && r.cert_not_after) {
+          const expiryDate = new Date(r.cert_not_after);
+          const today = new Date();
+          days = Math.floor((expiryDate - today) / (1000 * 60 * 60 * 24));
+        }
+
+        if (days === null || days === undefined || isNaN(days)) return;
 
         if (days < 0) expiryBuckets['Expired']++;
         else if (days <= 7) expiryBuckets['0-7 days']++;
@@ -200,26 +196,50 @@
         else expiryBuckets['30+ days']++;
       });
 
-      // clear previous chart (important)
       const certCanvas = document.getElementById('certExpiry');
-      if (certCanvas.chart) {
-        certCanvas.chart.destroy();
-      }
+      if (certCanvas.chart) certCanvas.chart.destroy();
 
       certCanvas.chart = new Chart(certCanvas, {
         type: 'bar',
         data: {
           labels: Object.keys(expiryBuckets),
           datasets: [{
-            data: Object.values(expiryBuckets)
+            data: Object.values(expiryBuckets),
+
+            // 🔥 COLOR ENHANCEMENT
+            backgroundColor: [
+              '#E74C3C',
+              '#F39C12',
+              '#F1C40F',
+              '#2ECC71'
+            ]
           }]
         },
         options: {
-          plugins: { legend: { display: false } },
-          scales: { y: { beginAtZero: true } }
+          plugins: {
+            legend: { display: false },
+
+            // 🔥 TOOLTIP ENHANCEMENT
+            tooltip: {
+              callbacks: {
+                label: ctx => `${ctx.raw} certificates`
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+
+              // 🔥 VISIBILITY FIX
+              ticks: { stepSize: 1 }
+            }
+          }
         }
       });
+
+      console.log("Expiry buckets:", expiryBuckets);
       console.log(results);
     }
   </script>
-</body></html>
+</body>
+</html>

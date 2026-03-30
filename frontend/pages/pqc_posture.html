@@ -11,7 +11,9 @@
 </head>
 <body>
   <div id='app-layout'></div>
+
   <div id='page-content' style='display:none'>
+
     <!-- Top summary bar -->
     <div class='d-flex gap-3 mb-3 small fw-bold'>
       <span>Elite-PQC Ready: <span id='pct-elite' class='text-success'>--</span>%</span>
@@ -19,34 +21,47 @@
       <span>Legacy: <span id='pct-legacy' class='text-danger'>--</span>%</span>
       <span>Critical Apps: <span id='cnt-critical' class='text-danger'>--</span></span>
     </div>
+
     <div class='row g-3 mb-3'>
+
       <!-- Classification grade bar chart -->
       <div class='col-md-3'><div class='stat-card'>
         <div class='fw-bold mb-2 small text-muted text-uppercase'>Assets by Classification Grade</div>
         <canvas id='gradeChart' height='220'></canvas>
       </div></div>
+
       <!-- Application Status pie -->
       <div class='col-md-3'><div class='stat-card'>
         <div class='fw-bold mb-2 small text-muted text-uppercase'>Application Status</div>
         <canvas id='appStatusPie' height='220'></canvas>
       </div></div>
+
       <!-- Risk Overview matrix -->
       <div class='col-md-3'><div class='stat-card'>
         <div class='fw-bold mb-2 small text-muted text-uppercase'>Risk Overview</div>
+
+        <!-- 🔥 EXISTING MATRIX (ENHANCED WITH DATA) -->
         <div id='risk-matrix' style='display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;height:180px'></div>
+
+        <!-- 🔥 NEW CHART (ADDED) -->
+        <canvas id='riskOverviewChart' height='120' class='mt-2'></canvas>
+
         <div class='mt-2 small d-flex gap-3'>
           <span><span style='background:#E74C3C;padding:2px 8px;border-radius:2px;color:#fff'>High</span></span>
           <span><span style='background:#F39C12;padding:2px 8px;border-radius:2px;color:#fff'>Medium</span></span>
           <span><span style='background:#27AE60;padding:2px 8px;border-radius:2px;color:#fff'>Safe</span></span>
         </div>
       </div></div>
+
       <!-- App detail panel -->
       <div class='col-md-3'><div class='stat-card' id='app-detail'>
         <div class='fw-bold mb-2'>App Details</div>
-        <div class='small text-muted'>Click an asset to see details</div>
+        <div id='app-details' class='small text-muted'>Click an asset to see details</div>
       </div></div>
+
     </div>
-    <!-- Per-asset PQC support table -->
+
+    <!-- Table -->
     <div class='stat-card mb-3'>
       <div class='fw-bold mb-3'>Assets PQC Support Status</div>
       <table class='qshield-table'>
@@ -54,32 +69,42 @@
         <tbody id='posture-tbody'></tbody>
       </table>
     </div>
-    <!-- Improvement Recommendations -->
+
+    <!-- Recommendations -->
     <div class='stat-card'>
       <div class='fw-bold mb-3'>Improvement Recommendations</div>
       <ul id='recs-list' class='list-group list-group-flush'></ul>
     </div>
+
   </div>
+
   <script>
+
   document.addEventListener('DOMContentLoaded', async () => {
     await qshield.init('posture');
     document.getElementById('page-content').style.display = 'block';
     loadPosture();
   });
+
   async function loadPosture() {
+
     const [summary, results] = await Promise.all([
       qshield.api('/api/summary/'), qshield.api('/api/results/')
     ]);
+
     const total = summary.total || 1;
     const lc    = summary.label_counts || {};
+
     const elite  = lc['Fully Quantum Safe'] || 0;
     const std    = lc['PQC Ready'] || 0;
     const legacy = lc['Quantum Vulnerable'] || 0;
     const crit   = lc['Critical'] || 0;
+
     document.getElementById('pct-elite').textContent    = Math.round(elite/total*100);
     document.getElementById('pct-std').textContent      = Math.round(std/total*100);
     document.getElementById('pct-legacy').textContent   = Math.round(legacy/total*100);
     document.getElementById('cnt-critical').textContent = crit;
+
     // Grade chart
     new Chart(document.getElementById('gradeChart'), {
       type: 'bar',
@@ -88,7 +113,8 @@
                            backgroundColor: ['#27AE60','#E74C3C','#F39C12','#888'] }]},
       options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
     });
-    // Application Status pie
+
+    // Pie
     new Chart(document.getElementById('appStatusPie'), {
       type: 'pie',
       data: { labels: ['Elite-PQC Ready', 'Standard', 'Legacy', 'Critical'],
@@ -96,14 +122,67 @@
                            backgroundColor: ['#27AE60','#9B59B6','#F39C12','#E74C3C'] }]},
       options: { plugins: { legend: { position: 'bottom' } } }
     });
-    // Asset table
+
+    // 🔥 RISK OVERVIEW LOGIC
+    const riskCounts = { HIGH: 0, MEDIUM: 0, LOW: 0 };
+
+    (results || []).forEach(r => {
+      const risk = (r.hndl_risk || '').toUpperCase();
+      if (riskCounts[risk] !== undefined) {
+        riskCounts[risk]++;
+      }
+    });
+
+    // 🔥 MATRIX VISUAL
+    const matrix = document.getElementById('risk-matrix');
+    matrix.innerHTML = '';
+
+    Object.entries(riskCounts).forEach(([key, val]) => {
+      const color = key === 'HIGH' ? '#E74C3C' :
+                    key === 'MEDIUM' ? '#F39C12' : '#27AE60';
+
+      matrix.innerHTML += `
+        <div style="
+          background:${color};
+          color:white;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          font-weight:bold;
+          border-radius:4px;
+        ">
+          ${key}<br>${val}
+        </div>
+      `;
+    });
+
+    // 🔥 DOUGHNUT CHART
+    const riskCanvas = document.getElementById('riskOverviewChart');
+    if (riskCanvas.chart) riskCanvas.chart.destroy();
+
+    riskCanvas.chart = new Chart(riskCanvas, {
+      type: 'doughnut',
+      data: {
+        labels: ['High', 'Medium', 'Safe'],
+        datasets: [{
+          data: [riskCounts.HIGH, riskCounts.MEDIUM, riskCounts.LOW],
+          backgroundColor: ['#E74C3C','#F39C12','#27AE60']
+        }]
+      },
+      options: {
+        plugins: { legend: { position: 'bottom' } }
+      }
+    });
+
+    // 🔥 TABLE (CLICKABLE)
     const tbody = document.getElementById('posture-tbody');
     tbody.innerHTML = results.map(r => {
       const sc = r.quantum_score || 0;
       const pqcIcon = r.is_pqc_algorithm ? "<span class='badge-quantum-safe'>YES</span>" : "<span class='badge-vulnerable'>NO</span>";
       const labelCls = qshield.getLabelClass(r.label);
       const riskCls  = qshield.getRiskClass(r.hndl_risk);
-      return `<tr>
+
+      return `<tr onclick='showAppDetails(${JSON.stringify(r)})' style="cursor:pointer">
         <td><strong>${r.hostname}</strong></td>
         <td><strong style='color:${sc>=60?"#27AE60":"#E74C3C"}'>${sc}/100</strong></td>
         <td><span class='${labelCls}'>${r.label||'--'}</span></td>
@@ -112,13 +191,37 @@
         <td><span class='${riskCls}'>${r.hndl_risk||'--'}</span></td>
       </tr>`;
     }).join('');
-    // Recommendations
+
+    // 🔥 RECOMMENDATIONS
     const recsList = document.getElementById('recs-list');
     const allRecs  = new Set();
     results.forEach(r => { (r.recommendations||[]).forEach(rec => allRecs.add(rec)); });
+
     recsList.innerHTML = [...allRecs].slice(0,8).map(rec =>
       `<li class='list-group-item small'>${rec}</li>`
     ).join('');
   }
+
+  // 🔥 APP DETAILS FUNCTION
+  function showAppDetails(app) {
+    const div = document.getElementById('app-details');
+
+    div.innerHTML = `
+      <div><strong>${app.hostname}</strong></div>
+      <hr>
+      <div><b>Score:</b> ${app.quantum_score}/100</div>
+      <div><b>Label:</b> ${app.label}</div>
+      <div><b>TLS:</b> ${app.tls_version}</div>
+      <div><b>Cipher:</b> ${app.cipher_suite}</div>
+      <div><b>Issuer:</b> ${app.cert_issuer}</div>
+      <div><b>HNDL Risk:</b> 
+        <span class="${qshield.getRiskClass(app.hndl_risk)}">
+          ${app.hndl_risk}
+        </span>
+      </div>
+    `;
+  }
+
   </script>
-</body></html>
+</body>
+</html>
