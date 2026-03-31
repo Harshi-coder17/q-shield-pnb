@@ -670,3 +670,17 @@ paragraph text '<para><font color="#xf39c1">PQC Ready</font></para>' caused exce
 2026-03-31 19:42:05,551 WARNING: Method Not Allowed (GET): /api/login/
 2026-03-31 19:43:05,551 WARNING: Method Not Allowed (GET): /api/login/
 2026-03-31 19:43:05,552 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-31 19:44:05,551 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-31 19:44:05,552 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-31 19:45:05,550 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-31 19:45:05,550 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-31 19:46:05,553 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-31 19:46:05,553 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-31 19:47:05,553 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-31 19:47:05,553 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-31 19:48:05,554 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-31 19:48:05,555 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-31 19:49:05,556 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-31 19:49:05,556 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-31 19:50:05,554 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-31 19:50:05,555 WARNING: Method Not Allowed (GET): /api/login/
