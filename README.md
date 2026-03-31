@@ -110,12 +110,12 @@ Q-Shield follows a **3-tier architecture** deployed entirely within PNB's intran
 │  │  QUANTUM RISK       │  │  DEPENDENCY GRAPH  │  │  REPORT    ││
 │  │  SCORING ENGINE     │  │  ENGINE            │  │  GENERATOR ││
 │  └──────────┬──────────┘  └────────┬───────────┘  └─────┬──────┘│
-│             │                      │                     │       │
-│             └──────────────┬───────┘─────────────────────┘       │
-│                            ▼                                     │
+│             │                      │                     │      │
+│             └──────────────┬───────┘─────────────────────┘      │
+│                            ▼                                    │
 │               ┌──────────────────────────────┐                  │
-│               │     PostgreSQL Database       │                  │
-│               │  (Scan Results + CBOM Store)  │                  │
+│               │     PostgreSQL Database      │                  │
+│               │  (Scan Results + CBOM Store) │                  │
 │               └──────────────────────────────┘                  │
 └──────────────────────────────┬──────────────────────────────────┘
                                │ (Outbound TLS only)
@@ -222,14 +222,9 @@ pip install -r requirements.txt
 cp .env.example .env
 # Edit .env with your database URL and secret key
 
-# 5. Initialize the database
-flask db upgrade
-
-# 6. Run the application
-flask run
 ```
 
-The dashboard will be available at `https://localhost:5000`.
+The dashboard will be available at `https://localhost:3000`.
 
 ### Production Deployment
 
@@ -238,7 +233,6 @@ For production, configure PostgreSQL in `.env`:
 ```env
 DATABASE_URL=postgresql://user:password@localhost:5432/qshield
 SECRET_KEY=your-secret-key
-FLASK_ENV=production
 ```
 
 ---
