@@ -12,7 +12,7 @@
 
 **"Quantum-Ready Cybersecurity for Future-Safe Banking"**
 
-[Demo Video](https://drive.google.com/file/d/1lcj1HuAB5KF7iw0g4cD8YHRuOXhnWWQP/view?usp=drive_link) · [GitHub Repository](https://github.com/Harshi-coder17/q-shield-pnb) · [Report a Bug](https://github.com/Harshi-coder17/q-shield-pnb/issues)
+[Demo Video](https://drive.google.com/file/d/1lcj1HuAB5KF7iw0g4cD8YHRuOXhnWWQP/view?usp=drive_link) · [Report a Bug](https://github.com/Harshi-coder17/q-shield-pnb/issues)
 
 </div>
 
