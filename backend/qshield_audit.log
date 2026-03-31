@@ -547,3 +547,69 @@ paragraph text '<para><font color="#xf39c1">PQC Ready</font></para>' caused exce
 2026-03-30 17:00:47,785 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
 2026-03-30 17:00:51,869 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
 2026-03-30 17:01:08,264 INFO: AUDIT | user=root | DISCOVER | target=google.com | 10 assets discovered
+2026-03-30 17:05:06,818 INFO: AUDIT | user=root | DISCOVER | target=github.com | 10 assets discovered
+2026-03-30 17:13:26,750 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-30 17:25:23,550 INFO: AUDIT | user=root | LOGIN | target= | Role: admin
+2026-03-30 17:25:44,024 INFO: AUDIT | user=root | SCAN | target=google.com | Score:75.5 Label:PQC Ready
+2026-03-30 17:26:01,960 INFO: AUDIT | user=root | DISCOVER | target=google.com | 10 assets discovered
+2026-03-30 17:26:52,701 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-30 17:27:33,976 INFO: AUDIT | user=root | EXPORT | target= | CSV CBOM
+2026-03-30 17:27:36,344 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-30 17:27:39,906 INFO: AUDIT | user=root | EXPORT | target= | PDF Report
+2026-03-30 17:31:58,420 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-30 17:40:06,332 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-30 17:40:09,526 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-30 17:40:39,126 INFO: AUDIT | user=root | LOGIN | target= | Role: admin
+2026-03-30 17:40:42,972 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-30 17:43:12,747 INFO: AUDIT | user=root | LOGIN | target= | Role: admin
+2026-03-30 17:43:16,760 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-30 18:02:26,104 INFO: AUDIT | user=root | DISCOVER | target=google.com | 10 assets discovered
+2026-03-30 18:03:11,662 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-30 18:03:55,290 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-30 18:03:59,154 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-30 18:04:12,947 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-30 19:25:51,160 INFO: AUDIT | user=root | LOGIN | target= | Role: admin
+2026-03-30 19:26:26,935 INFO: AUDIT | user=root | DISCOVER | target=google.com | 10 assets discovered
+2026-03-30 19:27:20,446 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-30 19:27:44,107 INFO: AUDIT | user=root | EXPORT | target= | PDF Report
+2026-03-30 19:29:30,715 INFO: AUDIT | user=root | DISCOVER | target=github.com | 10 assets discovered
+2026-03-31 12:32:19,831 INFO: AUDIT | user=root | LOGIN | target= | Role: admin
+2026-03-31 12:32:27,279 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-31 12:50:10,840 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-31 12:50:12,570 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-31 12:50:20,178 INFO: AUDIT | user=root | LOGIN | target= | Role: admin
+2026-03-31 12:50:24,169 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-31 12:50:33,596 INFO: AUDIT | user=root | LOGIN | target= | Role: admin
+2026-03-31 12:50:37,867 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-31 12:54:05,114 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-31 12:54:13,761 INFO: AUDIT | user=root | LOGIN | target= | Role: admin
+2026-03-31 13:16:00,341 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-31 13:16:26,870 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-31 13:16:47,298 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-31 13:16:58,232 INFO: AUDIT | user=root | LOGIN | target= | Role: admin
+2026-03-31 13:18:32,791 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-31 13:24:48,774 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-31 14:19:37,305 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-31 14:19:37,314 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-31 14:19:44,377 INFO: AUDIT | user=anonymous | LOGIN_FAILED | target=root | 
+2026-03-31 14:19:44,378 WARNING: Unauthorized: /api/login/
+2026-03-31 14:19:45,577 INFO: AUDIT | user=anonymous | LOGIN_FAILED | target=root | 
+2026-03-31 14:19:45,577 WARNING: Unauthorized: /api/login/
+2026-03-31 14:19:50,325 INFO: AUDIT | user=root | LOGIN | target= | Role: admin
+2026-03-31 14:19:54,026 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-31 14:20:01,543 INFO: AUDIT | user=root | LOGIN | target= | Role: admin
+2026-03-31 14:20:05,335 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-31 14:34:52,137 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-31 14:35:45,090 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-31 14:35:49,495 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-31 14:41:17,690 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-31 14:41:27,807 INFO: AUDIT | user=root | LOGIN | target= | Role: admin
+2026-03-31 14:41:30,466 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-31 14:42:01,176 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-31 15:07:10,930 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-31 15:07:15,215 INFO: AUDIT | user=root | EXPORT | target= | JSON CBOM
+2026-03-31 16:36:21,880 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-31 16:36:21,893 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-31 16:36:21,894 WARNING: Method Not Allowed (GET): /api/login/
+2026-03-31 16:36:32,473 INFO: AUDIT | user=root | LOGIN | target= | Role: admin
+2026-03-31 16:36:46,218 INFO: AUDIT | user=root | DISCOVER | target=google.com | 10 assets discovered

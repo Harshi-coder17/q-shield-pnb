@@ -1,0 +1,95 @@
+Business Source License 1.1
+
+Parameters
+
+Licensor:             Team GarudaGrid
+                      A student team from TIET, Patiala, Punjab, India.
+                      Harshita               — B.Tech 2nd Year, Batch 2024–2028
+                      Adhiraj Singh Saini    — B.Tech 2nd Year, Batch 2024–2028
+                      Komal Kakkar           — B.Tech 2nd Year, Batch 2024–2028
+                      Antriksh               — B.Tech 2nd Year, Batch 2024–2028
+
+Licensed Work:        Q-Shield — Quantum-Proof Systems Scanner
+                      Copyright (c) 2026 Team GarudaGrid.
+                      All rights reserved.
+
+Additional Use Grant: Hackathon evaluators, judges, and mentors associated
+                      with PSB Hackathon 2026 (organized by Punjab National
+                      Bank in association with IIT Kanpur) may view, run,
+                      and evaluate this software solely for the purpose of
+                      assessing Team GarudaGrid's submission to the said
+                      hackathon. No other use is permitted without explicit
+                      written permission from all four licensors listed above.
+
+Change Date:          NONE — This license does not expire and does not
+                      convert to any other license at any future date.
+
+Change License:       NONE
+
+-------------------------------------------------------------------------------
+
+Terms
+
+The Licensor hereby grants you the right to view and evaluate the Licensed
+Work solely as described in the Additional Use Grant above.
+
+No rights are granted to copy, modify, create derivative works, redistribute,
+sublicense, or use the Licensed Work in any production or non-production
+environment beyond the scope of the Additional Use Grant.
+
+-------------------------------------------------------------------------------
+
+Restrictions
+
+You may not:
+
+1. Copy, reproduce, distribute, or sublicense the Licensed Work or any
+   derivative thereof for any purpose other than evaluation as described
+   in the Additional Use Grant above.
+
+2. Remove or alter any copyright notices, author attributions, or this
+   license notice from any copy or portion of the Licensed Work.
+
+3. Present, publish, or submit the Licensed Work or any substantial portion
+   thereof as your own original work in any competition, publication,
+   portfolio, academic submission, or professional context without the
+   prior written consent of all four licensors listed above.
+
+4. Use the name "Q-Shield", "Team GarudaGrid", or the names of any
+   individual licensor — Harshita, Adhiraj Singh Saini, Komal Kakkar,
+   or Antriksh — to endorse or promote products or projects derived from
+   this work without prior written permission.
+
+5. Fork, clone, or mirror this repository and represent the resulting copy
+   as an independent or original project without clear and prominent
+   attribution to Team Garuda Grid as the sole original authors.
+
+6. Use any part of the architecture, scoring engine logic, CBOM generation
+   pipeline, or quantum risk analysis methodology of this software as the
+   basis for any other submission, product, or publication without written
+   consent from all four licensors.
+
+-------------------------------------------------------------------------------
+
+Disclaimer
+
+THE LICENSED WORK IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE LICENSED WORK
+OR THE USE OR OTHER DEALINGS IN THE LICENSED WORK.
+
+-------------------------------------------------------------------------------
+
+For permissions beyond the scope of this license, contact all four licensors:
+
+  Harshita               — github.com/Harshi-coder17
+  Adhiraj Singh Saini    — github.com/AdhirajCoder16
+  Komal Kakkar           — github.com/KomalKakkar-17
+  Antriksh               — github.com/Antriksh1984
+
+Project Repository: https://github.com/Harshi-coder17/q-shield-pnb
+
+-------------------------------------------------------------------------------

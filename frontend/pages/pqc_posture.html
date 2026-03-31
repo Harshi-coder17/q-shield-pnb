@@ -40,10 +40,10 @@
       <div class='col-md-3'><div class='stat-card'>
         <div class='fw-bold mb-2 small text-muted text-uppercase'>Risk Overview</div>
 
-        <!-- 🔥 EXISTING MATRIX (ENHANCED WITH DATA) -->
+        
         <div id='risk-matrix' style='display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;height:180px'></div>
 
-        <!-- 🔥 NEW CHART (ADDED) -->
+        
         <canvas id='riskOverviewChart' height='120' class='mt-2'></canvas>
 
         <div class='mt-2 small d-flex gap-3'>
@@ -123,7 +123,7 @@
       options: { plugins: { legend: { position: 'bottom' } } }
     });
 
-    // 🔥 RISK OVERVIEW LOGIC
+    //  RISK OVERVIEW LOGIC
     const riskCounts = { HIGH: 0, MEDIUM: 0, LOW: 0 };
 
     (results || []).forEach(r => {
@@ -133,7 +133,7 @@
       }
     });
 
-    // 🔥 MATRIX VISUAL
+    //  MATRIX VISUAL
     const matrix = document.getElementById('risk-matrix');
     matrix.innerHTML = '';
 
@@ -156,7 +156,7 @@
       `;
     });
 
-    // 🔥 DOUGHNUT CHART
+    //  DOUGHNUT CHART
     const riskCanvas = document.getElementById('riskOverviewChart');
     if (riskCanvas.chart) riskCanvas.chart.destroy();
 
@@ -174,7 +174,7 @@
       }
     });
 
-    // 🔥 TABLE (CLICKABLE)
+    //  TABLE 
     const tbody = document.getElementById('posture-tbody');
     tbody.innerHTML = results.map(r => {
       const sc = r.quantum_score || 0;
@@ -192,7 +192,7 @@
       </tr>`;
     }).join('');
 
-    // 🔥 RECOMMENDATIONS
+    // RECOMMENDATIONS
     const recsList = document.getElementById('recs-list');
     const allRecs  = new Set();
     results.forEach(r => { (r.recommendations||[]).forEach(rec => allRecs.add(rec)); });
@@ -202,7 +202,7 @@
     ).join('');
   }
 
-  // 🔥 APP DETAILS FUNCTION
+  //  APP DETAILS FUNCTION
   function showAppDetails(app) {
     const div = document.getElementById('app-details');
 

@@ -4,124 +4,678 @@
 <head>
   <meta charset='UTF-8'><title>Q-Shield | CBOM</title>
   <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css'>
-  <link rel='stylesheet' href='../static/css/qshield.css'>
   <script src='https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js'></script>
-  <script src='../static/js/qshield.js'></script>
+  <link rel='stylesheet' href='../static/css/qshield.css'>
 </head>
 <body>
   <div id='app-layout'></div>
   <div id='page-content' style='display:none'>
-    <!-- Stat Cards -->
-    <div class='row g-3 mb-4'>
-      <div class='col'><div class='stat-card gold'><div class='stat-label'>Total Algorithms</div>
-        <div class='stat-number' id='c-algs'>--</div></div></div>
-      <div class='col'><div class='stat-card danger'><div class='stat-label'>Quantum Vulnerable</div>
-        <div class='stat-number text-danger' id='c-vuln'>--</div></div></div>
-      <div class='col'><div class='stat-card success'><div class='stat-label'>PQC Algorithms</div>
-        <div class='stat-number text-success' id='c-pqc'>--</div></div></div>
-      <div class='col'><div class='stat-card'><div class='stat-label'>Unique Protocols</div>
-        <div class='stat-number' id='c-proto'>--</div></div></div>
-    </div>
-    <!-- Charts Row -->
-    <div class='row g-3 mb-4'>
-      <div class='col-md-4'><div class='stat-card'>
-        <div class='fw-bold mb-2 small text-muted text-uppercase'>Key Length Distribution</div>
-        <canvas id='keyLengthChart' height='200'></canvas></div></div>
-      <div class='col-md-4'><div class='stat-card'>
-        <div class='fw-bold mb-2 small text-muted text-uppercase'>Cipher Suites</div>
-        <canvas id='cipherChart' height='200'></canvas></div></div>
-      <div class='col-md-4'><div class='stat-card'>
-        <div class='fw-bold mb-2 small text-muted text-uppercase'>TLS Version Usage</div>
-        <canvas id='tlsChart' height='200'></canvas></div></div>
-    </div>
-    <!-- Export Buttons -->
-    <div class='d-flex gap-2 mb-3'>
-      <button class='btn btn-sm btn-warning fw-bold' onclick="window.open(qshield.API_BASE+'/api/export/json/')">Export JSON</button>
-      <button class='btn btn-sm btn-outline-dark' onclick="window.open(qshield.API_BASE+'/api/export/csv/')">Export CSV</button>
-      <button class='btn btn-sm btn-danger' onclick="window.open(qshield.API_BASE+'/api/export/pdf/')">Export PDF</button>
-    </div>
-    <!-- Full CBOM Table -->
-    <div class='stat-card'>
-      <div class='fw-bold mb-3'>Cryptographic Bill of Materials — Cert-In Annexure-A</div>
-      <ul class='nav nav-tabs mb-3' id='cbomTabs'>
-        <li class='nav-item'><a class='nav-link active' data-bs-toggle='tab' href='#certs-tab'>Certificates</a></li>
-        <li class='nav-item'><a class='nav-link' data-bs-toggle='tab' href='#keys-tab'>Keys</a></li>
-        <li class='nav-item'><a class='nav-link' data-bs-toggle='tab' href='#algs-tab'>Algorithms</a></li>
-        <li class='nav-item'><a class='nav-link' data-bs-toggle='tab' href='#proto-tab'>Protocols</a></li>
-      </ul>
-      <div class='tab-content'>
-        <div class='tab-pane fade show active' id='certs-tab'>
-          <table class='qshield-table'><thead><tr>
-            <th>Hostname</th><th>Subject</th><th>Issuer</th><th>Algorithm</th><th>Key Size</th><th>Days Left</th><th>SHA1 Fingerprint</th>
-          </tr></thead><tbody id='cbom-certs-tbody'></tbody></table></div>
-        <div class='tab-pane fade' id='keys-tab'>
-          <table class='qshield-table'><thead><tr>
-            <th>Key Type</th><th>Key Size (bits)</th><th>Classical Security (bits)</th><th>Quantum Resistant</th>
-          </tr></thead><tbody id='cbom-keys-tbody'></tbody></table></div>
-        <div class='tab-pane fade' id='algs-tab'>
-          <table class='qshield-table'><thead><tr>
-            <th>Algorithm Name</th><th>Standard</th><th>OID</th><th>PQC</th><th>Vulnerability Risk</th>
-          </tr></thead><tbody id='cbom-algs-tbody'></tbody></table></div>
-        <div class='tab-pane fade' id='proto-tab'>
-          <table class='qshield-table'><thead><tr>
-            <th>Protocol Version</th><th>Cipher Suite</th><th>Key Exchange</th><th>Forward Secrecy</th>
-          </tr></thead><tbody id='cbom-proto-tbody'></tbody></table></div>
+ 
+    <!-- ══════════════════════════════════
+         INSIGHT BANNER
+    ══════════════════════════════════ -->
+    <div class='stat-card' id='insight-banner'>
+      <div class='icon'>🛡️</div>
+      <div>
+        <h6 id='banner-title'>Analyzing cryptographic posture…</h6>
+        <p id='banner-body'>Loading your CBOM data — quantum vulnerability assessment will appear here.</p>
       </div>
     </div>
-  </div>
+ 
+    <!-- ══════════════════════════════════
+         STAT CARDS (original, enhanced)
+    ══════════════════════════════════ -->
+    <div class='row g-3 mb-4'>
+      <div class='col-6 col-md-3'>
+        <div class='stat-card gold'>
+          <div class='stat-label'>Total Algorithms</div>
+          <div class='stat-number' id='c-algs'>--</div>
+          <div class='stat-sub' id='sub-algs'></div>
+        </div>
+      </div>
+      <div class='col-6 col-md-3'>
+        <div class='stat-card danger'>
+          <div class='stat-label'>Quantum Vulnerable</div>
+          <div class='stat-number text-danger' id='c-vuln'>--</div>
+          <div class='stat-sub' id='sub-vuln'></div>
+        </div>
+      </div>
+      <div class='col-6 col-md-3'>
+        <div class='stat-card success'>
+          <div class='stat-label'>PQC Algorithms</div>
+          <div class='stat-number text-success' id='c-pqc'>--</div>
+          <div class='stat-sub' id='sub-pqc'></div>
+        </div>
+      </div>
+      <div class='col-6 col-md-3'>
+        <div class='stat-card'>
+          <div class='stat-label'>Unique Protocols</div>
+          <div class='stat-number' id='c-proto'>--</div>
+          <div class='stat-sub' id='sub-proto'></div>
+        </div>
+      </div>
+    </div>
+ 
+    <!-- ══════════════════════════════════
+         PQC READINESS + MIGRATION PANEL
+    ══════════════════════════════════ -->
+    <div class='row g-3 mb-4'>
+      <!-- Readiness -->
+      <div class='col-md-4'>
+        <div class='stat-card h-100'>
+          <div class='section-title'>PQC Readiness Score</div>
+          <div class='d-flex align-items-center justify-content-between mb-2'>
+            <span id='readiness-pct' style='font-size:2.2rem;font-weight:800;'>--%</span>
+            <span id='readiness-pill' class='badge-critical'>Critical</span>
+          </div>
+          <div class='progress mb-2'>
+            <div class='progress-bar bg-success' id='readiness-fill' style='width:0%'></div>
+          </div>
+          <p id='readiness-desc' style='font-size:12px;color:var(--muted);margin:0;line-height:1.5;'></p>
+          <hr style='margin:14px 0 10px;'>
+          <div class='section-title'>PQ Migration Timeline</div>
+          <div class='timeline'>
+            <div class='tl-item'>
+              <div class='tl-dot red'></div>
+              <div class='tl-label'>NOW — Inventory Phase</div>
+              <div class='tl-desc'>Catalog all algorithms, keys, and protocols (this CBOM)</div>
+            </div>
+            <div class='tl-item'>
+              <div class='tl-dot gold'></div>
+              <div class='tl-label'>Q3 2025 — Prioritize</div>
+              <div class='tl-desc'>Replace RSA/ECC with hybrid PQC in high-value endpoints</div>
+            </div>
+            <div class='tl-item'>
+              <div class='tl-dot gold'></div>
+              <div class='tl-label'>2026 — NIST PQC Standards</div>
+              <div class='tl-desc'>FIPS 203/204/205 finalized. Begin full migration</div>
+            </div>
+            <div class='tl-item'>
+              <div class='tl-dot green'></div>
+              <div class='tl-label'>2030 — NIST Deadline</div>
+              <div class='tl-desc'>RSA/ECC officially deprecated by NIST guidance</div>
+            </div>
+          </div>
+        </div>
+      </div>
+ 
+      <!-- Charts (original 3, preserved) -->
+      <div class='col-md-8'>
+        <div class='row g-3'>
+          <div class='col-md-4'>
+            <div class='stat-card h-100'>
+              <div class='section-title'>Key Length Distribution</div>
+              <canvas id='keyLengthChart' height='180'></canvas>
+              <div id='key-legend' style='font-size:11px;margin-top:10px;'></div>
+            </div>
+          </div>
+          <div class='col-md-4'>
+            <div class='stat-card h-100'>
+              <div class='section-title'>Cipher Suites</div>
+              <canvas id='cipherChart' height='180'></canvas>
+            </div>
+          </div>
+          <div class='col-md-4'>
+            <div class='stat-card h-100'>
+              <div class='section-title'>TLS Version Usage</div>
+              <canvas id='tlsChart' height='180'></canvas>
+              <div id='tls-insight' style='font-size:11px;color:var(--muted);margin-top:8px;line-height:1.4;'></div>
+            </div>
+          </div>
+        </div>
+ 
+        <!-- Insight mini cards -->
+        <div class='insight-grid mt-3' id='insight-grid'></div>
+      </div>
+    </div>
+ 
+    <!-- ══════════════════════════════════
+         EXPORT BUTTONS (original preserved)
+    ══════════════════════════════════ -->
+    <div class='d-flex gap-2 mb-3 align-items-center'>
+      <button class='btn btn-sm btn-export-json fw-bold' onclick="window.open(qshield.API_BASE+'/api/export/json/')">⬇ Export JSON</button>
+      <button class='btn btn-sm btn-outline-dark' onclick="window.open(qshield.API_BASE+'/api/export/csv/')">⬇ Export CSV</button>
+      <button class='btn btn-sm btn-danger' onclick="window.open(qshield.API_BASE+'/api/export/pdf/')">⬇ Export PDF</button>
+      <span style='font-size:11px;color:var(--muted);margin-left:8px;'>Cert-In Annexure-A compliant export</span>
+    </div>
+ 
+    <!-- ══════════════════════════════════
+         FULL CBOM TABLE (enhanced)
+    ══════════════════════════════════ -->
+    <div class='stat-card'>
+      <div class='d-flex align-items-center justify-content-between mb-1'>
+        <div style='font-weight:700;font-size:15px;'>Cryptographic Bill of Materials <span style='color:var(--muted);font-size:12px;font-weight:400;'>— Cert-In Annexure-A</span></div>
+        <div id='global-search-wrap'>
+          <input type='text' id='global-search' placeholder='🔍  Search all…' style='font-size:12px;border:1px solid var(--border);border-radius:6px;padding:5px 12px;width:200px;font-family:inherit;'>
+        </div>
+      </div>
+ 
+      <ul class='nav nav-tabs mb-3' id='cbomTabs'>
+        <li class='nav-item'><a class='nav-link active' data-bs-toggle='tab' href='#certs-tab'>🔐 Certificates</a></li>
+        <li class='nav-item'><a class='nav-link' data-bs-toggle='tab' href='#keys-tab'>🗝 Keys</a></li>
+        <li class='nav-item'><a class='nav-link' data-bs-toggle='tab' href='#algs-tab'>⚙️ Algorithms</a></li>
+        <li class='nav-item'><a class='nav-link' data-bs-toggle='tab' href='#proto-tab'>🌐 Protocols</a></li>
+      </ul>
+ 
+      <div class='tab-content'>
+ 
+        <!-- CERTIFICATES TAB -->
+        <div class='tab-pane fade show active' id='certs-tab'>
+          <div class='d-flex flex-wrap gap-2 align-items-center mb-2'>
+            <input type='text' id='cert-search' placeholder='Filter hostname / issuer…'>
+            <select id='cert-filter-alg'><option value=''>All Algorithms</option></select>
+            <select id='cert-filter-days'>
+              <option value=''>All Expiry</option>
+              <option value='critical'>Expiring &lt; 30d</option>
+              <option value='warn'>Expiring 30-90d</option>
+              <option value='ok'>Safe &gt; 90d</option>
+            </select>
+            <span class='filter-count' id='cert-count'></span>
+          </div>
+          <div style='overflow-x:auto;'>
+          <table class='qshield-table'>
+            <thead><tr>
+              <th>Hostname</th>
+              <th>Subject</th>
+              <th>Issuer</th>
+              <th data-tip='Signature algorithm used by this certificate'>Algorithm</th>
+              <th data-tip='Key size in bits. NIST recommends ≥2048 for RSA'>Key Size</th>
+              <th data-tip='Days until certificate expires. &lt;30 = critical'>Expires In</th>
+              <th data-tip='Quantum vulnerability: RSA &amp; ECDSA are broken by Shor algorithm'>Quantum Risk</th>
+              <th>SHA1 Fingerprint</th>
+            </tr></thead>
+            <tbody id='cbom-certs-tbody'></tbody>
+          </table>
+          </div>
+          <div class='d-flex align-items-center gap-2 mt-2'>
+            <button class='btn btn-sm btn-outline-secondary' id='cert-prev' onclick='certPage(-1)'>← Prev</button>
+            <span class='page-info' id='cert-page-info'></span>
+            <button class='btn btn-sm btn-outline-secondary' id='cert-next' onclick='certPage(1)'>Next →</button>
+          </div>
+        </div>
+ 
+        <!-- KEYS TAB -->
+        <div class='tab-pane fade' id='keys-tab'>
+          <div class='d-flex flex-wrap gap-2 align-items-center mb-2'>
+            <select id='keys-filter-qr'>
+              <option value=''>All</option>
+              <option value='YES'>Quantum Resistant</option>
+              <option value='NO'>Not Resistant</option>
+            </select>
+            <span class='filter-count' id='keys-count'></span>
+          </div>
+          <div class='row g-3 mb-3' id='keys-summary-cards'></div>
+          <div style='overflow-x:auto;'>
+          <table class='qshield-table'>
+            <thead><tr>
+              <th>Key Type</th>
+              <th>Key Size (bits)</th>
+              <th data-tip='Security level against classical computers'>Classical Security</th>
+              <th data-tip='Security level against quantum computers running Grover/Shor'>Quantum Security</th>
+              <th>Quantum Resistant</th>
+              <th data-tip='NIST recommendation for this key size'>NIST Status</th>
+              <th>Replacement Algorithm</th>
+            </tr></thead>
+            <tbody id='cbom-keys-tbody'></tbody>
+          </table>
+          </div>
+        </div>
+ 
+        <!-- ALGORITHMS TAB -->
+        <div class='tab-pane fade' id='algs-tab'>
+          <div class='d-flex flex-wrap gap-2 align-items-center mb-2'>
+            <input type='text' id='alg-search' placeholder='Filter algorithm…'>
+            <select id='alg-filter-pqc'>
+              <option value=''>All</option>
+              <option value='YES'>PQC Only</option>
+              <option value='NO'>Non-PQC Only</option>
+            </select>
+            <select id='alg-filter-risk'>
+              <option value=''>All Risk Levels</option>
+              <option value='HIGH'>High</option>
+              <option value='MEDIUM'>Medium</option>
+              <option value='LOW'>Low</option>
+              <option value='NONE (PQC)'>None (PQC)</option>
+            </select>
+            <span class='filter-count' id='alg-count'></span>
+          </div>
+          <div style='overflow-x:auto;'>
+          <table class='qshield-table'>
+            <thead><tr>
+              <th>Algorithm Name</th>
+              <th>Standard</th>
+              <th>OID</th>
+              <th>PQC</th>
+              <th data-tip='Risk level when a cryptographically relevant quantum computer (CRQC) becomes available'>Vulnerability Risk</th>
+              <th>Risk Indicator</th>
+              <th data-tip='Recommended post-quantum replacement per NIST PQC program'>Recommended Replacement</th>
+            </tr></thead>
+            <tbody id='cbom-algs-tbody'></tbody>
+          </table>
+          </div>
+        </div>
+ 
+        <!-- PROTOCOLS TAB -->
+        <div class='tab-pane fade' id='proto-tab'>
+          <div class='d-flex flex-wrap gap-2 align-items-center mb-2'>
+            <input type='text' id='proto-search' placeholder='Filter cipher suite…'>
+            <select id='proto-filter-tls'>
+              <option value=''>All TLS Versions</option>
+              <option value='TLSv1.3'>TLSv1.3</option>
+              <option value='TLSv1.2'>TLSv1.2</option>
+              <option value='TLSv1.1'>TLSv1.1</option>
+              <option value='TLSv1.0'>TLSv1.0</option>
+            </select>
+            <select id='proto-filter-fs'>
+              <option value=''>All</option>
+              <option value='YES'>Forward Secrecy: YES</option>
+              <option value='NO'>Forward Secrecy: NO</option>
+            </select>
+            <span class='filter-count' id='proto-count'></span>
+          </div>
+          <div style='overflow-x:auto;'>
+          <table class='qshield-table'>
+            <thead><tr>
+              <th>Protocol Version</th>
+              <th data-tip='Full IANA cipher suite name'>Cipher Suite</th>
+              <th>Key Exchange</th>
+              <th data-tip='Forward Secrecy ensures past sessions cannot be decrypted if long-term key is compromised'>Forward Secrecy</th>
+              <th data-tip='Whether this cipher suite is vulnerable to harvest-now-decrypt-later attacks'>HNDL Risk</th>
+              <th>Security Grade</th>
+            </tr></thead>
+            <tbody id='cbom-proto-tbody'></tbody>
+          </table>
+          </div>
+        </div>
+ 
+      </div><!-- /tab-content -->
+    </div><!-- /stat-card -->
+ 
+    <!-- ══════════════════════════════════
+         MIGRATION CHECKLIST
+    ══════════════════════════════════ -->
+    <div class='stat-card mt-4'>
+      <div class='section-title'>Post-Quantum Migration Checklist</div>
+      <div id='migration-checklist'></div>
+    </div>
+ 
+  </div><!-- /page-content -->
+ 
   <script src='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js'></script>
+  <script src='../static/js/qshield.js'></script>
   <script>
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  const algReplacement = {
+    'RSA'         : 'ML-KEM (Kyber) / ML-DSA (Dilithium)',
+    'ECDSA'       : 'SLH-DSA (SPHINCS+) or ML-DSA',
+    'ECDHE'       : 'X25519Kyber768 (hybrid)',
+    'DSA'         : 'ML-DSA (Dilithium)',
+    'DH'          : 'ML-KEM (Kyber)',
+    'SHA1'        : 'SHA-256 / SHA-384',
+    'MD5'         : 'SHA-256',
+    '3DES'        : 'AES-256-GCM',
+    'RC4'         : 'AES-256-GCM',
+    'DEFAULT'     : 'Consult NIST PQC standards'
+  };
+ 
+  function getAlgReplacement(algName) {
+    const n = (algName||'').toUpperCase();
+    for (const [k,v] of Object.entries(algReplacement)) {
+      if (n.includes(k)) return v;
+    }
+    return '—';
+  }
+ 
+  function riskColor(r) {
+    if (!r) return '#aaa';
+    const u = r.toUpperCase();
+    if (u.includes('HIGH') || u.includes('CRITICAL')) return '#E74C3C';
+    if (u.includes('MEDIUM')) return '#F39C12';
+    if (u.includes('LOW')) return '#3498db';
+    if (u.includes('NONE') || u.includes('PQC')) return '#27AE60';
+    return '#aaa';
+  }
+  function riskPct(r) {
+    if (!r) return 0;
+    const u = r.toUpperCase();
+    if (u.includes('HIGH') || u.includes('CRITICAL')) return 90;
+    if (u.includes('MEDIUM')) return 55;
+    if (u.includes('LOW')) return 25;
+    return 5;
+  }
+  function daysClass(d) {
+    if (d == null || d === '') return '';
+    if (d < 30) return 'days-critical';
+    if (d < 90) return 'days-warn';
+    return 'days-ok';
+  }
+  function tlsGrade(ver, fs, cipher) {
+    const c = (cipher||'').toUpperCase();
+    if (ver === 'TLSv1.3') return {g:'A+', cls:'badge-quantum-safe'};
+    if (ver === 'TLSv1.2' && fs) {
+      if (c.includes('3DES') || c.includes('RC4')) return {g:'B', cls:'badge-pqc-ready'};
+      return {g:'A', cls:'badge-quantum-safe'};
+    }
+    if (ver === 'TLSv1.1' || ver === 'TLSv1.0') return {g:'F', cls:'badge-vulnerable'};
+    return {g:'B', cls:'badge-pqc-ready'};
+  }
+  function keyQuantumSecurity(sizeBits, ktype) {
+    // Grover's halves symmetric; Shor breaks RSA/ECC
+    const t = (ktype||'').toUpperCase();
+    if (t.includes('AES')) return sizeBits / 2 + ' bits (Grover)';
+    if (t.includes('RSA') || t.includes('ECC') || t.includes('EC') || t.includes('UNKNOWN'))
+      return '0 bits (Shor breaks)';
+    return '—';
+  }
+  function nistStatus(sizeBits, ktype) {
+    const t = (ktype||'').toUpperCase();
+    if (t.includes('RSA')) {
+      if (sizeBits >= 3072) return {s:'Acceptable (short-term)', cls:'badge-pqc-ready'};
+      if (sizeBits >= 2048) return {s:'Legacy (phase out)', cls:'badge-pqc-ready'};
+      return {s:'Deprecated', cls:'badge-vulnerable'};
+    }
+    if (t.includes('ECC') || t.includes('EC') || t.includes('UNKNOWN')) {
+      if (sizeBits >= 384) return {s:'Acceptable (short-term)', cls:'badge-pqc-ready'};
+      if (sizeBits >= 256) return {s:'Legacy (phase out)', cls:'badge-pqc-ready'};
+      return {s:'Deprecated', cls:'badge-vulnerable'};
+    }
+    return {s:'—', cls:''};
+  }
+ 
+  // ── Pagination state ───────────────────────────────────────────────────────
+  let _certRows = [], _certPage = 0, _certPageSize = 15;
+  function certPage(delta) {
+    _certPage = Math.max(0, Math.min(_certPage + delta, Math.ceil(_certRows.length/_certPageSize)-1));
+    renderCertPage();
+  }
+  function renderCertPage() {
+    const start = _certPage * _certPageSize;
+    const slice = _certRows.slice(start, start + _certPageSize);
+    document.getElementById('cbom-certs-tbody').innerHTML = slice.join('');
+    document.getElementById('cert-page-info').textContent =
+      `Page ${_certPage+1} of ${Math.max(1,Math.ceil(_certRows.length/_certPageSize))} (${_certRows.length} records)`;
+    document.getElementById('cert-prev').disabled = _certPage === 0;
+    document.getElementById('cert-next').disabled = _certPage >= Math.ceil(_certRows.length/_certPageSize)-1;
+  }
+ 
+  // ── Filter helpers ─────────────────────────────────────────────────────────
+  let _allCerts=[], _allKeys=[], _allAlgs=[], _allProtos=[];
+ 
+  function applyFilters() {
+    filterCerts(); filterKeys(); filterAlgs(); filterProtos();
+  }
+  function filterCerts() {
+    const s = (document.getElementById('cert-search')?.value||'').toLowerCase();
+    const algF = document.getElementById('cert-filter-alg')?.value||'';
+    const dF   = document.getElementById('cert-filter-days')?.value||'';
+    const globalS = (document.getElementById('global-search')?.value||'').toLowerCase();
+    _certRows = _allCerts.filter(c => {
+      const txt = `${c.hostname} ${c.cert_subject||''} ${c.cert_issuer||''} ${c.sig_algorithm||''}`.toLowerCase();
+      if (s && !txt.includes(s)) return false;
+      if (globalS && !txt.includes(globalS)) return false;
+      if (algF && (c.sig_algorithm||'') !== algF) return false;
+      const d = c.cert_days_remaining;
+      if (dF==='critical' && !(d < 30)) return false;
+      if (dF==='warn'     && !(d>=30 && d<90)) return false;
+      if (dF==='ok'       && !(d >= 90)) return false;
+      return true;
+    }).map(c => `<tr>
+      <td><strong>${c.hostname}</strong></td>
+      <td style='font-size:11px'>${c.cert_subject||'--'}</td>
+      <td style='font-size:11px'>${c.cert_issuer||'--'}</td>
+      <td><span class='badge-pqc-ready'>${c.sig_algorithm||'--'}</span></td>
+      <td class='mono'>${c.cert_key_size||'--'}-bit</td>
+      <td><span class='${daysClass(c.cert_days_remaining)}'>${c.cert_days_remaining!=null?c.cert_days_remaining:'--'}d</span></td>
+      <td><span class='badge-vulnerable' title='RSA and ECDSA are vulnerable to Shor\'s algorithm on quantum computers'>⚠ Quantum Risk</span></td>
+      <td class='fp'>${c.cert_sha1_fingerprint||'--'}</td>
+    </tr>`);
+    _certPage = 0;
+    renderCertPage();
+    document.getElementById('cert-count').textContent = `${_certRows.length} records`;
+  }
+ 
+  function filterKeys() {
+    const qrF = document.getElementById('keys-filter-qr')?.value||'';
+    const globalS = (document.getElementById('global-search')?.value||'').toLowerCase();
+    const rows = _allKeys.filter(k => {
+      if (qrF && k.quantum_resistance !== qrF) return false;
+      if (globalS) {
+        const txt = `${k.key_type||''} ${k.key_size_bits}`.toLowerCase();
+        if (!txt.includes(globalS)) return false;
+      }
+      return true;
+    });
+    const dotColor = {YES:'#27AE60', NO:'#E74C3C'};
+    document.getElementById('cbom-keys-tbody').innerHTML = rows.map(k => {
+      const ns = nistStatus(k.key_size_bits, k.key_type);
+      const qsec = keyQuantumSecurity(k.key_size_bits, k.key_type);
+      const repl = k.quantum_resistance==='YES' ? '—' : getAlgReplacement(k.key_type||'RSA');
+      return `<tr>
+        <td><span class='key-dot' style='background:${dotColor[k.quantum_resistance]||"#aaa"}'></span>${k.key_type||'Unknown'}</td>
+        <td class='mono'>${k.key_size_bits}-bit</td>
+        <td>${k.classical_security_bits} bits</td>
+        <td style='font-size:12px;color:${k.quantum_resistance==='YES'?'#27AE60':'#E74C3C'};font-weight:700;'>${qsec}</td>
+        <td><span class='${k.quantum_resistance==="YES"?"badge-quantum-safe":"badge-vulnerable"}'>${k.quantum_resistance}</span></td>
+        <td><span class='${ns.cls}'>${ns.s}</span></td>
+        <td style='font-size:11px;'>${repl}</td>
+      </tr>`;
+    }).join('');
+    document.getElementById('keys-count').textContent = `${rows.length} records`;
+  }
+ 
+  function filterAlgs() {
+    const s   = (document.getElementById('alg-search')?.value||'').toLowerCase();
+    const pqcF= document.getElementById('alg-filter-pqc')?.value||'';
+    const rF  = document.getElementById('alg-filter-risk')?.value||'';
+    const globalS = (document.getElementById('global-search')?.value||'').toLowerCase();
+    const rows = _allAlgs.filter(a => {
+      const txt = `${a.algorithm_name||''} ${a.standard||''} ${a.oid||''}`.toLowerCase();
+      if (s && !txt.includes(s)) return false;
+      if (globalS && !txt.includes(globalS)) return false;
+      if (pqcF) { const yesno = a.is_pqc?'YES':'NO'; if(yesno!==pqcF) return false; }
+      if (rF && (a.vulnerability_risk||'') !== rF) return false;
+      return true;
+    });
+    document.getElementById('cbom-algs-tbody').innerHTML = rows.map(a => {
+      const pct = riskPct(a.vulnerability_risk);
+      const col = riskColor(a.vulnerability_risk);
+      const repl = a.is_pqc ? '—' : getAlgReplacement(a.algorithm_name);
+      return `<tr>
+        <td style='font-weight:600;'>${a.algorithm_name}</td>
+        <td>${a.standard||'--'}</td>
+        <td class='mono' style='font-size:10px;'>${a.oid||'--'}</td>
+        <td><span class='${a.is_pqc?"badge-quantum-safe":"badge-vulnerable"}'>${a.is_pqc?'YES':'NO'}</span></td>
+        <td style='font-weight:700;color:${col};'>${a.vulnerability_risk||'--'}</td>
+        <td>
+          <div class='risk-bar-wrap'>
+            <div class='risk-bar-bg'><div class='risk-bar-fill' style='width:${pct}%;background:${col};'></div></div>
+            <span class='risk-bar-label' style='color:${col};'>${pct}%</span>
+          </div>
+        </td>
+        <td style='font-size:11px;'>${repl}</td>
+      </tr>`;
+    }).join('');
+    document.getElementById('alg-count').textContent = `${rows.length} records`;
+  }
+ 
+  function filterProtos() {
+    const s   = (document.getElementById('proto-search')?.value||'').toLowerCase();
+    const tlsF= document.getElementById('proto-filter-tls')?.value||'';
+    const fsF = document.getElementById('proto-filter-fs')?.value||'';
+    const globalS = (document.getElementById('global-search')?.value||'').toLowerCase();
+    const rows = _allProtos.filter(p => {
+      const txt = `${p.protocol_version||''} ${p.cipher_suite||''} ${p.key_exchange||''}`.toLowerCase();
+      if (s && !txt.includes(s)) return false;
+      if (globalS && !txt.includes(globalS)) return false;
+      if (tlsF && p.protocol_version !== tlsF) return false;
+      if (fsF) { const yn = p.forward_secrecy?'YES':'NO'; if(yn!==fsF) return false; }
+      return true;
+    });
+    document.getElementById('cbom-proto-tbody').innerHTML = rows.map(p => {
+      const grade = tlsGrade(p.protocol_version, p.forward_secrecy, p.cipher_suite);
+      // HNDL risk: key exchange with RSA is vulnerable; ECDHE is partially (harvest now)
+      const hndl = (p.key_exchange||'').includes('RSA') && !p.forward_secrecy;
+      return `<tr>
+        <td><span class='${p.protocol_version==="TLSv1.3"?"badge-quantum-safe":p.protocol_version==="TLSv1.2"?"badge-warning":"badge-vulnerable"}'>${p.protocol_version}</span></td>
+        <td class='mono' style='font-size:11px;'>${p.cipher_suite}</td>
+        <td>${p.key_exchange}</td>
+        <td><span class='${p.forward_secrecy?"badge-quantum-safe":"badge-vulnerable"}'>${p.forward_secrecy?'YES':'NO'}</span></td>
+        <td><span class='${hndl?"badge-vulnerable":"badge-quantum-safe"}' title='Harvest-Now-Decrypt-Later: adversaries record encrypted traffic today to decrypt when quantum computers arrive'>${hndl?'HIGH':'LOW'}</span></td>
+        <td><span class='${grade.cls}'>${grade.g}</span></td>
+      </tr>`;
+    }).join('');
+    document.getElementById('proto-count').textContent = `${rows.length} records`;
+  }
+ 
+  // ── Main init ──────────────────────────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', async () => {
     await qshield.init('cbom');
     document.getElementById('page-content').style.display = 'block';
     const cbom = await qshield.api('/api/export/json/');
     if (!cbom) return;
-    document.getElementById('c-algs').textContent   = cbom.algorithms?.length || 0;
-    document.getElementById('c-pqc').textContent    = cbom.summary?.pqc_count || 0;
-    document.getElementById('c-vuln').textContent   = cbom.summary?.quantum_vulnerable || 0;
-    document.getElementById('c-proto').textContent  = cbom.protocols?.length || 0;
-    // Key Length Chart
+ 
+    const totalAlgs = cbom.algorithms?.length || 0;
+    const pqcCount  = cbom.summary?.pqc_count || 0;
+    const vulnCount = cbom.summary?.quantum_vulnerable || 0;
+    const protoCount= cbom.protocols?.length || 0;
+ 
+    // ── Stat cards
+    document.getElementById('c-algs').textContent  = totalAlgs;
+    document.getElementById('c-pqc').textContent   = pqcCount;
+    document.getElementById('c-vuln').textContent  = vulnCount;
+    document.getElementById('c-proto').textContent = protoCount;
+    document.getElementById('sub-algs').textContent= `${pqcCount} post-quantum, ${vulnCount} at risk`;
+    document.getElementById('sub-vuln').textContent= `${totalAlgs > 0 ? Math.round(vulnCount/totalAlgs*100) : 0}% of total algorithms`;
+    document.getElementById('sub-pqc').textContent = `${totalAlgs > 0 ? Math.round(pqcCount/totalAlgs*100) : 0}% PQC adoption`;
+    const fsCount = (cbom.protocols||[]).filter(p=>p.forward_secrecy).length;
+    document.getElementById('sub-proto').textContent = `${fsCount}/${protoCount} with Forward Secrecy`;
+ 
+    // ── PQC Readiness
+    const readinessPct = totalAlgs > 0 ? Math.round(pqcCount/totalAlgs*100) : 0;
+    document.getElementById('readiness-pct').textContent = readinessPct + '%';
+    document.getElementById('readiness-fill').style.width = readinessPct + '%';
+    let pillCls='qs-critical', pillTxt='Critical', descTxt='';
+    if (readinessPct >= 70) { pillCls='qs-safe'; pillTxt='Good'; }
+    else if (readinessPct >= 30) { pillCls='qs-moderate'; pillTxt='Moderate'; }
+    document.getElementById('readiness-pill').className = `qs-pill ${pillCls}`;
+    document.getElementById('readiness-pill').textContent = pillTxt;
+    if (readinessPct < 20) descTxt = `Your environment is ${vulnCount} algorithms away from quantum safety. Immediate action recommended — prioritize RSA & ECDSA replacement in public-facing endpoints.`;
+    else if (readinessPct < 70) descTxt = `Partial PQC adoption detected. Continue migrating classical algorithms to NIST FIPS 203/204/205 standards. Hybrid PQC is recommended during transition.`;
+    else descTxt = `Good PQC posture! Continue monitoring for newly deprecated algorithms and ensure all endpoints complete migration before 2030 NIST deadline.`;
+    document.getElementById('readiness-desc').textContent = descTxt;
+ 
+    // ── Insight Banner
+    const bannerTitle = vulnCount > 0
+      ? `⚠️ ${vulnCount} algorithm${vulnCount>1?'s':''} are quantum-vulnerable in your environment`
+      : '✅ No quantum-vulnerable algorithms detected';
+    const bannerBody  = vulnCount > 0
+      ? `RSA and ECDSA are broken by Shor's algorithm on a cryptographically relevant quantum computer (CRQC). NIST estimates CRQCs could emerge by 2030. Begin hybrid PQC migration now to protect long-lived secrets and comply with Cert-In guidelines.`
+      : 'Your algorithm inventory shows strong post-quantum readiness. Maintain regular CBOM audits as new vulnerabilities emerge.';
+    document.getElementById('banner-title').textContent = bannerTitle;
+    document.getElementById('banner-body').textContent  = bannerBody;
+ 
+    // ── Insight mini cards
+    const certExpiring = (cbom.certificates||[]).filter(c=>c.cert_days_remaining != null && c.cert_days_remaining < 30).length;
+    const noFsProtos   = (cbom.protocols||[]).filter(p=>!p.forward_secrecy).length;
+    const hndlProtos   = (cbom.protocols||[]).filter(p=>(p.key_exchange||'').includes('RSA') && !p.forward_secrecy).length;
+    document.getElementById('insight-grid').innerHTML = [
+      {icon:'📜', val: cbom.certificates?.length||0, lbl:'Total Certs'},
+      {icon:'⚠️', val: certExpiring,                  lbl:'Expiring < 30d'},
+      {icon:'🔒', val: fsCount,                        lbl:'With Fwd Secrecy'},
+      {icon:'🎯', val: hndlProtos,                     lbl:'HNDL Risk Protos'},
+    ].map(c=>`<div class='stat-card'><div class='ic-icon'>${c.icon}</div><div class='ic-val'>${c.val}</div><div class='ic-lbl'>${c.lbl}</div></div>`).join('');
+ 
+    // ── Key Length Chart
     const ksMap = {};
     (cbom.keys||[]).forEach(k => { ksMap[k.key_size_bits+'-bit'] = (ksMap[k.key_size_bits+'-bit']||0)+1; });
     new Chart(document.getElementById('keyLengthChart'),{
       type:'doughnut',
-      data:{labels:Object.keys(ksMap),datasets:[{data:Object.values(ksMap),backgroundColor:['#1B2A4A','#8B1A1A','#D4AC0D','#27AE60']}]},
-      options:{plugins:{legend:{position:'bottom',labels:{font:{size:10}}}}}
+      data:{labels:Object.keys(ksMap),datasets:[{data:Object.values(ksMap),backgroundColor:['#1B2A4A','#8B1A1A','#D4AC0D','#27AE60','#3498db']}]},
+      options:{plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12}}},cutout:'65%'}
     });
-    // Cipher Chart
+ 
+    // ── Cipher Chart
     const cipherMap = {};
     (cbom.protocols||[]).forEach(p => { const k=p.cipher_suite?.split('_').slice(-2).join('_')||'Other'; cipherMap[k]=(cipherMap[k]||0)+1; });
     new Chart(document.getElementById('cipherChart'),{
       type:'bar',
-      data:{labels:Object.keys(cipherMap),datasets:[{data:Object.values(cipherMap),backgroundColor:'#D4AC0D'}]},
-      options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}
+      data:{labels:Object.keys(cipherMap),datasets:[{data:Object.values(cipherMap),backgroundColor:'#D4AC0D',borderRadius:4}]},
+      options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}
     });
-    // TLS Chart
+ 
+    // ── TLS Chart
     const tlsMap = {};
     (cbom.protocols||[]).forEach(p => { const t=p.protocol_version||'Unknown'; tlsMap[t]=(tlsMap[t]||0)+1; });
     new Chart(document.getElementById('tlsChart'),{
       type:'pie',
-      data:{labels:Object.keys(tlsMap),datasets:[{data:Object.values(tlsMap),backgroundColor:['#27AE60','#F39C12','#E74C3C']}]},
-      options:{plugins:{legend:{position:'bottom',labels:{font:{size:10}}}}}
+      data:{labels:Object.keys(tlsMap),datasets:[{data:Object.values(tlsMap),backgroundColor:['#27AE60','#F39C12','#E74C3C','#8B1A1A']}]},
+      options:{plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12}}}}
     });
-    // Fill tables
-    document.getElementById('cbom-certs-tbody').innerHTML = (cbom.certificates||[]).map(c=>`<tr>
-      <td><strong>${c.hostname}</strong></td><td style='font-size:11px'>${c.cert_subject||'--'}</td>
-      <td style='font-size:11px'>${c.cert_issuer||'--'}</td><td>${c.sig_algorithm||'--'}</td>
-      <td>${c.cert_key_size||'--'}-bit</td>
-      <td><span class='${c.cert_days_remaining>30?"badge-quantum-safe":"badge-critical"}'>${c.cert_days_remaining||'--'}</span></td>
-      <td style='font-size:9px'>${c.cert_sha1_fingerprint||'--'}</td></tr>`).join('');
-    document.getElementById('cbom-keys-tbody').innerHTML = (cbom.keys||[]).map(k=>`<tr>
-      <td>${k.key_type}</td><td>${k.key_size_bits}-bit</td><td>${k.classical_security_bits} bits</td>
-      <td><span class='${k.quantum_resistance==="YES"?"badge-quantum-safe":"badge-vulnerable"}'>${k.quantum_resistance}</span></td></tr>`).join('');
-    document.getElementById('cbom-algs-tbody').innerHTML = (cbom.algorithms||[]).map(a=>`<tr>
-      <td>${a.algorithm_name}</td><td>${a.standard||'--'}</td><td style='font-size:10px'>${a.oid||'--'}</td>
-      <td><span class='${a.is_pqc?"badge-quantum-safe":"badge-vulnerable"}'>${a.is_pqc?'YES':'NO'}</span></td>
-      <td>${a.vulnerability_risk||'--'}</td></tr>`).join('');
-    document.getElementById('cbom-proto-tbody').innerHTML = (cbom.protocols||[]).map(p=>`<tr>
-      <td>${p.protocol_version}</td><td style='font-size:11px'>${p.cipher_suite}</td>
-      <td>${p.key_exchange}</td>
-      <td><span class='${p.forward_secrecy?"badge-quantum-safe":"badge-vulnerable"}'>${p.forward_secrecy?'YES':'NO'}</span></td></tr>`).join('');
+    const tls13cnt = tlsMap['TLSv1.3']||0;
+    const tls12cnt = tlsMap['TLSv1.2']||0;
+    const tlsTotal = Object.values(tlsMap).reduce((a,b)=>a+b,0);
+    document.getElementById('tls-insight').textContent =
+      tlsTotal > 0
+        ? `${Math.round(tls13cnt/tlsTotal*100)}% TLSv1.3 (ideal). ${tls12cnt} TLSv1.2 sessions — ensure they use ECDHE ciphers.`
+        : '';
+ 
+    // ── Populate data stores & build cert filter
+    _allCerts  = cbom.certificates  || [];
+    _allKeys   = cbom.keys          || [];
+    _allAlgs   = cbom.algorithms    || [];
+    _allProtos = cbom.protocols     || [];
+ 
+    const algSet = [...new Set(_allCerts.map(c=>c.sig_algorithm).filter(Boolean))];
+    const algSel = document.getElementById('cert-filter-alg');
+    algSet.forEach(a => { const o=document.createElement('option'); o.value=a; o.textContent=a; algSel.appendChild(o); });
+ 
+    // Keys summary cards
+    document.getElementById('keys-summary-cards').innerHTML = [
+      {lbl:'Keys scanned', val: _allKeys.length, col:'#1B2A4A'},
+      {lbl:'Quantum Resistant', val: _allKeys.filter(k=>k.quantum_resistance==='YES').length, col:'#27AE60'},
+      {lbl:'Needs Migration', val: _allKeys.filter(k=>k.quantum_resistance!=='YES').length, col:'#E74C3C'},
+    ].map(c=>`<div class='col-auto'><div class='stat-card'>
+      <div style='font-size:1.6rem;font-weight:800;color:${c.col};'>${c.val}</div>
+      <div style='font-size:11px;color:var(--muted);font-weight:600;'>${c.lbl}</div>
+    </div></div>`).join('');
+ 
+    // Migration checklist
+    const checks = [
+      {status: _allCerts.length>0?'done':'todo',   title:'Step 1 — Generate CBOM', desc:'Catalog all certificates, keys, algorithms, and protocols. ✓ Complete.'},
+      {status: vulnCount>0?'warn':'done',           title:'Step 2 — Identify Quantum-Vulnerable Assets', desc: vulnCount>0?`${vulnCount} algorithms flagged. Replace RSA/ECDSA with ML-DSA or SLH-DSA.`:'No vulnerable algorithms found.'},
+      {status: certExpiring>0?'warn':'done',        title:'Step 3 — Renew Expiring Certificates', desc: certExpiring>0?`${certExpiring} certificate(s) expire within 30 days. Renew immediately.`:'All certificates have adequate validity.'},
+      {status: noFsProtos>0?'warn':'done',          title:'Step 4 — Enable Forward Secrecy', desc: noFsProtos>0?`${noFsProtos} protocol sessions lack Forward Secrecy. Switch to ECDHE key exchange.`:'All sessions have Forward Secrecy.'},
+      {status: readinessPct<50?'todo':'warn',       title:'Step 5 — Deploy Hybrid PQC (Transition)', desc:'Implement X25519Kyber768 for key exchange. Use ML-DSA alongside ECDSA during transition period.'},
+      {status:'todo',                               title:'Step 6 — Full PQC Migration (Target: 2030)', desc:'Complete migration to NIST FIPS 203/204/205 algorithms. Decommission all RSA/ECC primitives.'},
+    ];
+    document.getElementById('migration-checklist').innerHTML = checks.map(c=>`
+      <div class='d-flex gap-2 mb-2'>
+        <div class='migration-step step-${c.status}'>${c.status==='done'?'✓':c.status==='warn'?'!':'○'}</div>
+        <div><h6>${c.title}</h6><p>${c.desc}</p></div>
+      </div>`).join('');
+ 
+    // Initial render
+    applyFilters();
+ 
+    // Bind filter events
+    ['cert-search','cert-filter-alg','cert-filter-days'].forEach(id=>{
+      document.getElementById(id)?.addEventListener('input', filterCerts);
+      document.getElementById(id)?.addEventListener('change', filterCerts);
+    });
+    ['keys-filter-qr'].forEach(id=>{
+      document.getElementById(id)?.addEventListener('change', filterKeys);
+    });
+    ['alg-search','alg-filter-pqc','alg-filter-risk'].forEach(id=>{
+      document.getElementById(id)?.addEventListener('input', filterAlgs);
+      document.getElementById(id)?.addEventListener('change', filterAlgs);
+    });
+    ['proto-search','proto-filter-tls','proto-filter-fs'].forEach(id=>{
+      document.getElementById(id)?.addEventListener('input', filterProtos);
+      document.getElementById(id)?.addEventListener('change', filterProtos);
+    });
+    document.getElementById('global-search')?.addEventListener('input', applyFilters);
   });
   </script>
-</body></html>
+</body>
+</html>
+ 
