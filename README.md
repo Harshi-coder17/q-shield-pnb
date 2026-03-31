@@ -4,11 +4,11 @@
 ### Quantum-Proof Systems Scanner
 
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
-[![Flask](https://img.shields.io/badge/Flask-3.0-000000?style=flat-square&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
+[![Django](https://img.shields.io/badge/Django-4.2-092E20?style=flat-square&logo=django&logoColor=white)](https://www.djangoproject.com/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791?style=flat-square&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![NIST PQC](https://img.shields.io/badge/NIST-PQC%20Compliant-005A9C?style=flat-square)](https://csrc.nist.gov/projects/post-quantum-cryptography)
-[![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
-[![PSB Hackathon](https://img.shields.io/badge/PSB%20Hackathon-2026-orange?style=flat-square)](https://github.com/Harshi-coder17/q-shield-pnb)
+[![License](https://img.shields.io/badge/License-BSL-green?style=flat-square)](LICENSE)
+[![PNB Hackathon](https://img.shields.io/badge/PNB%20Hackathon-2026-orange?style=flat-square)](https://github.com/Harshi-coder17/q-shield-pnb)
 
 **"Quantum-Ready Cybersecurity for Future-Safe Banking"**
 
@@ -84,7 +84,7 @@ Q-Shield follows a **3-tier architecture** deployed entirely within PNB's intran
 │                     PNB INTRANET BOUNDARY                       │
 │                                                                 │
 │   ┌───────────────┐        ┌──────────────────────────────┐     │
-│   │  DASHBOARD UI │ ◀────▶ │     FLASK REST API SERVER    │     │
+│   │  DASHBOARD UI │ ◀────▶ │     DJANGO REST API SERVER    │     │
 │   │  (Bootstrap 5)│        └───────────────┬──────────────┘     │
 │   └───────────────┘                        │                    │
 │                                            ▼                    │
@@ -183,7 +183,7 @@ Q-Shield detects and validates the presence of NIST-standardized Post-Quantum Cr
 | Backend | Python 3.11+ | Core scanner engine, PQC analysis |
 | Backend | Django 4.2 | REST API and dashboard server |
 | Backend | cryptography 42.0 | Deep X.509 certificate OID parsing |
-| Backend | SQLAlchemy 2.0 | Database ORM abstraction |
+| Backend | Django ORM | Database ORM abstraction |
 | Frontend | HTML5 + Bootstrap 5 | Dashboard UI |
 | Frontend | JavaScript ES6+ | Real-time scan results, charts |
 | Database | SQLite | Local development |
@@ -203,6 +203,8 @@ Q-Shield detects and validates the presence of NIST-standardized Post-Quantum Cr
 - PostgreSQL 15 (production) or SQLite (development)
 - Node.js (for frontend build, if applicable)
 
+---
+
 ### Steps
 
 ```bash
@@ -220,12 +222,22 @@ pip install -r requirements.txt
 
 # 4. Configure environment variables
 cp .env.example .env
+
 # Edit .env with your database URL and secret key
 
+# 5. Apply database migrations
+python manage.py migrate
+
+# 6. Create superuser (for admin access)
+python manage.py createsuperuser
+
+# 7. Run the Django server
+python manage.py runserver
 ```
 
-The dashboard will be available at `https://localhost:3000`.
-
+The dashboard will be available at 
+Frontend : `http://localhost:3000`
+Backend (Django): `http://127.0.0.1:8000`
 ### Production Deployment
 
 For production, configure PostgreSQL in `.env`:
