@@ -84,7 +84,7 @@ Q-Shield follows a **3-tier architecture** deployed entirely within PNB's intran
 │                     PNB INTRANET BOUNDARY                       │
 │                                                                 │
 │   ┌───────────────┐        ┌──────────────────────────────┐     │
-│   │  DASHBOARD UI │ ◀────▶ │     DJANGO REST API SERVER    │     │
+│   │  DASHBOARD UI │ ◀────▶ │     DJANGO REST API SERVER   │     │
 │   │  (Bootstrap 5)│        └───────────────┬──────────────┘     │
 │   └───────────────┘                        │                    │
 │                                            ▼                    │
@@ -237,7 +237,7 @@ python manage.py runserver
 
 The dashboard will be available at 
 Frontend : `http://localhost:3000`
-Backend (Django): `http://127.0.0.1:8000`
+Backend : `http://127.0.0.1:8000`
 ### Production Deployment
 
 For production, configure PostgreSQL in `.env`:
